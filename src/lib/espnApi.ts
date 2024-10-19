@@ -1,4 +1,6 @@
-export const teams = {"1":"Falcons",
+export const teams = {"-2":"TBD",
+                      "-1":"TBD",
+                      "1":"Falcons",
                       "2":"Bills",
                       "3":"Bears",
                       "4":"Bengals",
@@ -31,10 +33,11 @@ export const teams = {"1":"Falcons",
                       "33":"Ravens",
                       "34":"Cowboys"} as const
 
-type teamIds = keyof typeof teams
+export type TeamIds = keyof typeof teams
+export type SeasonTypes = 1 | 2 | 3 | 4
 
 type EspnEvent = {competitions: {competitors:{homeAway: "home" | "away",
-                                           id:teamIds,
+                                           id:TeamIds,
                                            score:string,
                                            winner:boolean}[]
                             }[],
@@ -44,6 +47,9 @@ type EspnEvent = {competitions: {competitors:{homeAway: "home" | "away",
                           text:"Gamecast" | "Box Score" | "Play-by-Play" | "Recap"
                 }[]
                   name:string,
+                  season: {year: number,
+                           type: SeasonTypes
+                  },
                   situation?: {probability: {tiePercentage:number,
                                              homeWinPercentage:number,
                                              awayWinPercentage:number}}
@@ -59,10 +65,10 @@ type EspnEvent = {competitions: {competitors:{homeAway: "home" | "away",
                    odds?: {details:string}[]
                   
              }
-type EspnSeason = {type: 1 | 2 | 3 | 4,
+type EspnSeason = {type: SeasonTypes,
     year: number}
 type EspnWeek = {number: number,
-    teamsOnBye?: {id:teamIds}[]}
+    teamsOnBye?: {id:TeamIds}[]}
 
 export type EspnScoreboardResponse = {events: EspnEvent[],
                            season: EspnSeason,
@@ -71,3 +77,17 @@ export type EspnScoreboardResponse = {events: EspnEvent[],
 
 
 
+const scoreURL = "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+
+export async function fetchScores(dates:string,
+    seasontype:SeasonTypes,
+    week:number) {
+const params = new URLSearchParams({"dates":dates,
+                 "seasontype":String(seasontype),
+                 "week":String(week)
+                 })
+const url = `${scoreURL}?${params}`
+const resp = await fetch(url)
+const respData = await resp.json()
+return respData
+}

@@ -9,7 +9,7 @@
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
 	const username = "LP"
-	const avatarImg = "https://i.imgur.com/ELIrAze.jpeg"
+	const avatarImg = "/img/avatar/jacoby.jpg"
 </script>
 
 <!-- App Shell -->
