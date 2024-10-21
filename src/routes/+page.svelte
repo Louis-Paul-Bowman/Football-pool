@@ -1,7 +1,8 @@
 <script lang="ts">
 	// import { onMount } from "svelte";
 	import {teams, fetchScores} from "$lib/espnApi"
-	import type {EspnScoreboardResponse, SeasonTypes} from "$lib/espnApi";
+	import type {EspnScoreboardResponse, SeasonTypes, TeamIds} from "$lib/espnApi";
+	import Game from "$lib/components/game.svelte";
 
 	export let data
 
@@ -13,6 +14,8 @@
 	let previouslySelected = week
 	
 	const maxWeek = seasontype == 2 ? 18 : 5
+
+	let spreadGames: TeamIds[] = ["2", "28", "25"]
 
 
 	async function updateScores(dates:string,
@@ -47,13 +50,13 @@
 			<option value={index+1}>Week {index+1}</option>
 		{/each}
 	</select>
-	{#each scores.events as event}
-		<h1>{event.name}</h1>
-		{#each event.competitions[0].competitors as competitor}
-			<p>{teams[competitor.id]} ({competitor.score})</p>
-		{/each}
-		<p></p>
-	{/each}
+	<div class="flex flex-wrap gap-4">
+		{#each scores.events as event (event.id)}
+			<Game homeId={event.competitions[0].competitors[0].id} 
+			awayId={event.competitions[0].competitors[1].id}
+			isSpread={spreadGames.includes(event.competitions[0].competitors[0].id)}></Game>
+		{/each}	
+	</div>	
 {/if}
 
 
