@@ -19,8 +19,8 @@
     const selectedEffect = "border-green-500 border-8"
 
     $: {
-        awayCSS = `w-20 h-20 object-contain ${hoverEffect} ${selected == awayId ? selectedEffect : "border-transparent"} transition-colors duration-300`
-        homeCSS = `w-20 h-20 object-contain ${hoverEffect} ${selected == homeId ? selectedEffect : "border-transparent"} transition-colors duration-300`
+        awayCSS = `${hoverEffect} ${selected == awayId ? selectedEffect : "border-transparent"} transition-colors duration-300`
+        homeCSS = `${hoverEffect} ${selected == homeId ? selectedEffect : "border-transparent"} transition-colors duration-300`
     }
 </script>
 
@@ -29,8 +29,12 @@
 <div class="max-w-sm mx-auto mt-12 border-black rounded-lg border-solid border p-4 space-y-2">
     <p class="text-lg font-medium mb-4 text-center">{awayName} at {homeName}</p>
     <div class="flex space-x-4 items-center justify-center">
-        <img on:click={() => selected = awayId} src={awayLogo} alt="{awayName} logo" class={awayCSS}>
-        <img on:click={() => selected = homeId} src={homeLogo} alt="{homeName} logo" class={homeCSS}>
+        <button type="button" on:click={() => selected = awayId} class={awayCSS} aria-label="{awayName} logo">
+            <img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain">
+        </button>
+        <button type="button" on:click={() => selected = homeId} class={homeCSS} aria-label="{homeName} logo">
+            <img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain">
+        </button>
     </div>
     
     {#if isSpread}

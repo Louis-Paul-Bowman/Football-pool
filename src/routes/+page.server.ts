@@ -1,31 +1,36 @@
 import type { PageServerLoad } from './$types';
-import {fetchScores} from "$lib/espnApi"
-import type {EspnScoreboardResponse, SeasonTypes} from "$lib/espnApi";
-
-
-function currentWeek(): number {
-    const currentDate = new Date();
-    const givenDateMs = new Date("2024-09-03").getTime();
-    const currentDateMs = currentDate.getTime();
-    
-    const differenceInMs = currentDateMs - givenDateMs;
-    const weeks = Math.floor(differenceInMs / (7 * 24 * 60 * 60 * 1000));
-    
-    return 1 + weeks;
-}
+import {fetchScores, SeasonWeeks} from "$lib/espnApi"
+import type {EspnScoreboardResponse, EspnWeek, SeasonTypes} from "$lib/espnApi";
 
 export const load = (async () => {
-    let week = currentWeek()
-    let seasontype: SeasonTypes  = 2
-    if (week > 18) {
-        seasontype = 3
-        week = week - 18
-    }
+    //No params gives current week
+    let currentWeekData = await fetchScores()
 
-    var dates = String(new Date(Date.now()).getFullYear())
+    let currentYear = currentWeekData.season.year
+    let currentWeek =  currentWeekData.week.number
+    let seasontype = currentWeekData.season.type
+    let weeks = SeasonWeeks[seasontype]
+
+    type FullSeasonData<T extends SeasonTypes> = 
+    {[K in keyof typeof SeasonWeeks[T]]: EspnScoreboardResponse}
+
+    let scores: FullSeasonData<typeof seasontype> = {};
+
+    await Promise.all(
+        weeks.map(async (week) => {
+          let weekData: EspnScoreboardResponse;
+          
+          if (week !== currentWeek) {
+            weekData = await fetchScores(String(currentYear), seasontype, week);
+          } else {
+            weekData = currentWeekData;
+          }
+      
+          scores[week] = weekData;
+        })
+      );
     
-    var scores:EspnScoreboardResponse = await fetchScores(dates, seasontype, week)
 
-    const data = {scores, week, seasontype, dates}
+    const data = {scores, currentYear, currentWeek, seasontype, weeks}
     return data;
 }) satisfies PageServerLoad;
