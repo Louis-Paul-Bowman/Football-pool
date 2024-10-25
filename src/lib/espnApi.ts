@@ -1,40 +1,42 @@
-export const teams = {"-2":"TBD",
-                      "-1":"TBD",
-                      "1":"Falcons",
-                      "2":"Bills",
-                      "3":"Bears",
-                      "4":"Bengals",
-                      "5":"Browns",
-                      "6":"Cowboys",
-                      "7":"Broncos",
-                      "8":"Lions",
-                      "9":"Packers",
-                      "10":"Titans",
-                      "11":"Colts",
-                      "12":"Chiefs",
-                      "13":"Raiders",
-                      "14":"Rams",
-                      "15":"Dolphins",
-                      "16":"Vikings",
-                      "17":"Patriots",
-                      "18":"Saints",
-                      "19":"Giants",
-                      "20":"Jets",
-                      "21":"Eagles",
-                      "22":"Cardinals",
-                      "23":"Steelers",
-                      "24":"Chargers",
-                      "25":"49ers",
-                      "26":"Seahawks",
-                      "27":"Buccaneers",
-                      "28":"Commanders",
-                      "29":"Panthers",
-                      "30":"Jaguars",
-                      "33":"Ravens",
-                      "34":"Cowboys"} as const
+export type ValidTeamIds = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "20" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "30" | "33" | "34"
+export type TeamIds = ValidTeamIds | "-1" | "-2"
 
-export type TeamIds = keyof typeof teams
-export type ValidTeamIds = Omit<TeamIds, "-1" | "-2">
+export const teams :Record<TeamIds, string> = {"-2":"TBD",
+    "-1":"TBD",
+    "1":"Falcons",
+    "2":"Bills",
+    "3":"Bears",
+    "4":"Bengals",
+    "5":"Browns",
+    "6":"Cowboys",
+    "7":"Broncos",
+    "8":"Lions",
+    "9":"Packers",
+    "10":"Titans",
+    "11":"Colts",
+    "12":"Chiefs",
+    "13":"Raiders",
+    "14":"Rams",
+    "15":"Dolphins",
+    "16":"Vikings",
+    "17":"Patriots",
+    "18":"Saints",
+    "19":"Giants",
+    "20":"Jets",
+    "21":"Eagles",
+    "22":"Cardinals",
+    "23":"Steelers",
+    "24":"Chargers",
+    "25":"49ers",
+    "26":"Seahawks",
+    "27":"Buccaneers",
+    "28":"Commanders",
+    "29":"Panthers",
+    "30":"Jaguars",
+    "33":"Ravens",
+    "34":"Cowboys"}
+
+
 export type SeasonTypes = 1 | 2 | 3 | 4
 export type StrSeasonTypes = "1" | "2" | "3" | "4"
 
@@ -113,6 +115,7 @@ export type EspnScoreboardResponse = {leagues: EspnLeague[],
                                       week: EspnWeek
                                 }
 
+export type FullSeasonData<T extends SeasonTypes> = {[K in keyof typeof SeasonWeeks[T]]: EspnScoreboardResponse}
 
 
 export const scoreURL = "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
@@ -135,5 +138,84 @@ if (dates !== undefined){
 const url = `${scoreURL}?${params}`
 const resp = await fetch(url)
 const respData = await resp.json()
-return respData as EspnScoreboardResponse
+validateEspnScoreboardResponse(respData)
+return respData
+}
+
+function isObject(obj:any): asserts obj is Object {
+    if (!(typeof obj === 'object' && !Array.isArray(obj) && obj !== null)){
+        throw new Error("Not an object.");
+        
+    }
+    return 
+}
+
+function isString(obj:any): asserts obj is string {
+    if (typeof obj !== "string"){
+        throw new Error("Not a string.");
+        
+    }
+    return
+}
+
+function isArray(obj:any): asserts obj is any[] {
+    if (!Array.isArray(obj)) {
+        throw new Error("Not an array.")
+    }
+}
+
+
+export function validateEspnSeason(obj:any): asserts obj is EspnSeason {
+    
+    return
+}
+
+export function validateEspnLeague(obj:any): asserts obj is EspnLeague {
+    isObject(obj)
+    isString(obj.id)
+    isString(obj.slug)
+    validateEspnSeason(obj.season)
+    isString(obj.calendarStartDate)
+    isString(obj.calendarEndDate)
+
+    isArray(obj.calendar)
+    obj.calendar.forEach((element:any) => {
+        isObject(element);
+        ["Preseason", "Regular Season", "Postseason", "Off Season"].includes(element.label);
+        ["1", "2", "3", "4"].includes(element.value);
+        isString(element.startDate)
+        isString(element.endDate)
+        isArray(element.entries)
+        element.entries.forEach((subElement:any) => {
+            isObject(subElement)
+            isString(subElement.label)
+            isString(subElement.alternateLabel)
+            isString(subElement.detail)
+            isString(subElement.value)
+            isString(subElement.startDate)
+            isString(subElement.endDate)
+        });
+    });
+
+    return
+}
+
+export function validateEspnEvent(obj:any): asserts obj is EspnEvent {
+    
+    return
+}
+
+export function validateEspnWeek(obj:any): asserts obj is EspnWeek {
+    
+    return
+}
+
+export function validateEspnScoreboardResponse(obj:any): asserts obj is EspnScoreboardResponse {
+    
+    return
+}
+
+export function validateFullSeasonData(obj:any, T:SeasonTypes): asserts obj is FullSeasonData<typeof T> {
+
+    return
 }

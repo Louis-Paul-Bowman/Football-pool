@@ -14,6 +14,9 @@
 	
 
 	let spreadGames: TeamIds[] = ["5", "7", "8"]
+	let byeTeams = scores[week].week.teamsOnBye
+	
+	$: byeTeams = scores[week].week.teamsOnBye
 
 
 </script>
@@ -33,10 +36,10 @@
 	</div>	
 {/if}
 
-{#if scores[week].week.teamsOnBye !== undefined}
+{#if byeTeams !== undefined}
 	<h1>Bye teams</h1>
 	<div class="flex flex-wrap gap-4 ">
-		{#each scores[week].week.teamsOnBye as team (team.id) }
+		{#each byeTeams as team (team.id) }
 		<img src={`/img/logos/svg/${team.id}.svg`} alt="{teams[team.id]} logo" class="w-20 h-20 object-contain">
 		{/each}
 	</div>

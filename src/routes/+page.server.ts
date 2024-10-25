@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import {fetchScores, SeasonWeeks} from "$lib/espnApi"
-import type {EspnScoreboardResponse, EspnWeek, SeasonTypes} from "$lib/espnApi";
+import {fetchScores, SeasonWeeks, validateFullSeasonData} from "$lib/espnApi"
+import type {EspnScoreboardResponse, FullSeasonData} from "$lib/espnApi";
 
 export const load = (async () => {
     //No params gives current week
@@ -11,10 +11,7 @@ export const load = (async () => {
     let seasontype = currentWeekData.season.type
     let weeks = SeasonWeeks[seasontype]
 
-    type FullSeasonData<T extends SeasonTypes> = 
-    {[K in keyof typeof SeasonWeeks[T]]: EspnScoreboardResponse}
-
-    let scores: FullSeasonData<typeof seasontype> = {};
+    let scores: any = {};
 
     await Promise.all(
         weeks.map(async (week) => {
@@ -29,6 +26,8 @@ export const load = (async () => {
           scores[week] = weekData;
         })
       );
+
+    validateFullSeasonData(scores, seasontype)
     
 
     const data = {scores, currentYear, currentWeek, seasontype, weeks}
