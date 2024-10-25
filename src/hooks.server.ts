@@ -26,6 +26,18 @@ const supabase: Handle = async ({ event, resolve }) => {
 		}
 	});
 
+	// the official supabase auth guide docs have a bug that logs a warning
+	// https://supabase.com/docs/guides/auth/server-side/sveltekit
+	// See https://github.com/supabase/auth-js/issues/888
+	if ('suppressGetSessionWarning' in event.locals.supabase.auth) {
+		// @ts-expect-error - suppressGetSessionWarning is not part of the official API
+		event.locals.supabase.auth.suppressGetSessionWarning = true;
+	} else {
+		console.warn(
+			'SupabaseAuthClient#suppressGetSessionWarning was removed. See https://github.com/supabase/auth-js/issues/888.'
+		);
+	}
+
 	/**
 	 * Unlike `supabase.auth.getSession()`, which returns the session _without_
 	 * validating the JWT, this function also calls `getUser()` to validate the

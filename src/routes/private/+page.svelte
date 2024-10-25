@@ -1,40 +1,49 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation';
-	import type { EventHandler } from 'svelte/elements';
+	// import { onMount } from "svelte";
+	import { teams, fetchScores } from '$lib/espnApi';
+	import type { EspnEvent, EspnScoreboardResponse, SeasonTypes, TeamIds } from '$lib/espnApi';
+	import Game from '$lib/components/game.svelte';
 
-	import type { PageData } from './$types';
+	export let data;
 
-	export let data: PageData;
-	$: ({ notes, supabase, user } = data);
+	let { scores, currentYear, currentWeek, seasontype, weeks } = data;
 
-	let handleSubmit: EventHandler<SubmitEvent, HTMLFormElement>;
-	$: handleSubmit = async (evt) => {
-		evt.preventDefault();
-		if (!evt.target) return;
+	let week = currentWeek;
+	let dates = String(currentYear);
 
-		const form = evt.target as HTMLFormElement;
+	let spreadGames: TeamIds[] = ['5', '7', '8'];
+	let byeTeams = scores[week].week.teamsOnBye;
 
-		const note = (new FormData(form).get('note') ?? '') as string;
-		if (!note) return;
-
-		const { error } = await supabase.from('notes').insert({ note });
-		if (error) console.error(error);
-
-		invalidate('supabase:db:notes');
-		form.reset();
-	};
+	$: byeTeams = scores[week].week.teamsOnBye;
 </script>
 
-<h1>Private page for user: {user?.user_metadata.display_name}</h1>
-<h2>Notes</h2>
-<ul>
-	{#each notes as note}
-		<li>{note.note}</li>
-	{/each}
-</ul>
-<form on:submit={handleSubmit}>
-	<label>
-		Add a note
-		<input name="note" type="text" />
-	</label>
-</form>
+{#if scores}
+	<select bind:value={week} class="text-black">
+		{#each weeks as week}
+			<option value={week}>Week {week}</option>
+		{/each}
+	</select>
+
+	<div class="flex flex-wrap gap-4">
+		{#each scores[week].events as event (event.id)}
+			<Game
+				homeId={event.competitions[0].competitors[0].id}
+				awayId={event.competitions[0].competitors[1].id}
+				isSpread={spreadGames.includes(event.competitions[0].competitors[0].id)}
+			></Game>
+		{/each}
+	</div>
+{/if}
+
+{#if byeTeams !== undefined}
+	<h1>Bye teams</h1>
+	<div class="flex flex-wrap gap-4">
+		{#each byeTeams as team (team.id)}
+			<img
+				src={`/img/logos/svg/${team.id}.svg`}
+				alt="{teams[team.id]} logo"
+				class="w-20 h-20 object-contain"
+			/>
+		{/each}
+	</div>
+{/if}

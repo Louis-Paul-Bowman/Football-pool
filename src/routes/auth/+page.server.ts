@@ -8,17 +8,19 @@ export const actions: Actions = {
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 		const data = {
-			// display_name: formData.get("display_name") as string,
-			display_name: 'LP'
+			display_name: formData.get('displayName') as string
 		};
 		const options = { data };
 
 		const { error } = await supabase.auth.signUp({ email, password, options });
 		if (error) {
 			console.error(error);
-			redirect(303, '/auth/error');
+			return { success: false, reason: error.message };
 		} else {
-			redirect(303, '/');
+			return {
+				success: true,
+				reason: `An email has been sent to ${email} to validate your account.`
+			};
 		}
 	},
 	login: async ({ request, locals: { supabase } }) => {
@@ -29,7 +31,7 @@ export const actions: Actions = {
 		const { error } = await supabase.auth.signInWithPassword({ email, password });
 		if (error) {
 			console.error(error);
-			redirect(303, '/auth/error');
+			return { success: false, reason: error.message };
 		} else {
 			redirect(303, '/private');
 		}

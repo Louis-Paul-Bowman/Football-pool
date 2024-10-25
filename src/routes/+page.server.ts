@@ -1,35 +1,13 @@
-import type { PageServerLoad } from './$types';
-import { fetchScores, SeasonWeeks, assertFullSeasonData, assertSeasonTypes } from '$lib/espnApi';
-import type { EspnScoreboardResponse, FullSeasonData } from '$lib/espnApi';
+import { redirect } from '@sveltejs/kit';
 
-export const load = (async () => {
-	//No params gives current week
-	let currentWeekData = await fetchScores();
+import type { Actions } from './$types';
 
-	let currentYear = currentWeekData.season.year;
-	let currentWeek = currentWeekData.week.number;
-	let seasontype = currentWeekData.season.type;
-	assertSeasonTypes(seasontype);
-	let weeks = SeasonWeeks[seasontype];
-
-	let scores: any = {};
-
-	await Promise.all(
-		weeks.map(async (week) => {
-			let weekData: EspnScoreboardResponse;
-
-			if (week !== currentWeek) {
-				weekData = await fetchScores(String(currentYear), seasontype, week);
-			} else {
-				weekData = currentWeekData;
-			}
-
-			scores[week] = weekData;
-		})
-	);
-
-	assertFullSeasonData(scores, seasontype);
-
-	const data = { scores, currentYear, currentWeek, seasontype, weeks };
-	return data;
-}) satisfies PageServerLoad;
+export const actions: Actions = {
+	logout: async ({ locals: { supabase } }) => {
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			console.error(error);
+		}
+		return redirect(303, '/');
+	}
+};
