@@ -1,35 +1,35 @@
 import type { PageServerLoad } from './$types';
-import {fetchScores, SeasonWeeks, validateFullSeasonData} from "$lib/espnApi"
-import type {EspnScoreboardResponse, FullSeasonData} from "$lib/espnApi";
+import { fetchScores, SeasonWeeks, assertFullSeasonData, assertSeasonTypes } from '$lib/espnApi';
+import type { EspnScoreboardResponse, FullSeasonData } from '$lib/espnApi';
 
 export const load = (async () => {
-    //No params gives current week
-    let currentWeekData = await fetchScores()
+	//No params gives current week
+	let currentWeekData = await fetchScores();
 
-    let currentYear = currentWeekData.season.year
-    let currentWeek =  currentWeekData.week.number
-    let seasontype = currentWeekData.season.type
-    let weeks = SeasonWeeks[seasontype]
+	let currentYear = currentWeekData.season.year;
+	let currentWeek = currentWeekData.week.number;
+	let seasontype = currentWeekData.season.type;
+	assertSeasonTypes(seasontype);
+	let weeks = SeasonWeeks[seasontype];
 
-    let scores: any = {};
+	let scores: any = {};
 
-    await Promise.all(
-        weeks.map(async (week) => {
-          let weekData: EspnScoreboardResponse;
-          
-          if (week !== currentWeek) {
-            weekData = await fetchScores(String(currentYear), seasontype, week);
-          } else {
-            weekData = currentWeekData;
-          }
-      
-          scores[week] = weekData;
-        })
-      );
+	await Promise.all(
+		weeks.map(async (week) => {
+			let weekData: EspnScoreboardResponse;
 
-    validateFullSeasonData(scores, seasontype)
-    
+			if (week !== currentWeek) {
+				weekData = await fetchScores(String(currentYear), seasontype, week);
+			} else {
+				weekData = currentWeekData;
+			}
 
-    const data = {scores, currentYear, currentWeek, seasontype, weeks}
-    return data;
+			scores[week] = weekData;
+		})
+	);
+
+	assertFullSeasonData(scores, seasontype);
+
+	const data = { scores, currentYear, currentWeek, seasontype, weeks };
+	return data;
 }) satisfies PageServerLoad;
