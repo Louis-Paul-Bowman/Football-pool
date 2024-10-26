@@ -134,17 +134,18 @@ export const EspnLeagueSchema = z.object({
 });
 export type EspnLeague = z.infer<typeof EspnLeagueSchema>;
 
+export const EspnCompetitorSchema = z.object({
+	homeAway: z.enum(['home', 'away']),
+	id: TeamIdsSchema,
+	score: z.string(),
+	winner: z.boolean().optional()
+});
+export type EspnCompetitor = z.infer<typeof EspnCompetitorSchema>;
+
 export const EspnEventSchema = z.object({
 	competitions: z.array(
 		z.object({
-			competitors: z.array(
-				z.object({
-					homeAway: z.enum(['home', 'away']),
-					id: TeamIdsSchema,
-					score: z.string(),
-					winner: z.boolean().optional()
-				})
-			)
+			competitors: z.array(EspnCompetitorSchema)
 		})
 	),
 	date: z.string(),
@@ -251,4 +252,17 @@ export function assertFullSeasonData<T extends SeasonTypes>(
 		EspnScoreboardResponseSchema.parse(obj[week]);
 	});
 	return;
+}
+
+export function chronologicalSort(games: EspnEvent[], ascending: boolean = true): EspnEvent[] {
+	return [...games].sort((a, b) => {
+		const dateA = new Date(a.date);
+		const dateB = new Date(b.date);
+
+		if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+			throw new Error('Invalid date format');
+		}
+
+		return ascending ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+	});
 }

@@ -1,17 +1,35 @@
 <script lang="ts">
-	import { teams, type TeamIds } from '$lib/espnApi';
-	export let homeId: TeamIds;
-	export let awayId: TeamIds;
+	import { teams, type TeamIds, type EspnCompetitor, type EspnEvent, type ValidTeamIds} from '$lib/espnApi';
+	import { formatDate } from "$lib/helpers";
+	export let event: EspnEvent 
 	export let isSpread: boolean;
 	export let selected: TeamIds | null = null;
 
-	let spread: Number | null = isSpread ? 1 : null;
-
-	const homeName = teams[homeId];
+	const competition = event.competitions[0]
+	const competitors = competition.competitors
+	
+	if (competitors.length != 2){
+		throw new Error("Invalid number of competitors");
+	}
+	const [comp1, comp2] = competitors
+	
+	const homeTeam = comp1.homeAway == "home" ? comp1 : comp2;
+	const homeId = homeTeam.id
+	const homeName = teams[homeTeam.id];
 	const homeLogo = `/img/logos/svg/${homeId}.svg`;
 
-	const awayName = teams[awayId];
+	const awayTeam = comp1.homeAway == "away" ? comp1 : comp2;
+	const awayId = awayTeam.id
+	const awayName = teams[awayTeam.id];
 	const awayLogo = `/img/logos/svg/${awayId}.svg`;
+
+	let spread: Number | null = isSpread ? 1 : null;
+
+	const startTime = new Date(event.date)
+	const formattedStartTime = formatDate(startTime)
+
+	let leader: TeamIds | null = null
+
 
 	let awayCSS = '';
 	let homeCSS = '';
@@ -19,30 +37,40 @@
 	const selectedEffect = 'border-green-500 border-8';
 
 	$: {
-		awayCSS = `${hoverEffect} ${selected == awayId ? selectedEffect : 'border-transparent'} transition-colors duration-300`;
-		homeCSS = `${hoverEffect} ${selected == homeId ? selectedEffect : 'border-transparent'} transition-colors duration-300`;
+		leader = awayTeam.score > homeTeam.score ? awayTeam.id : homeTeam.score > awayTeam.score ? homeTeam.id : null
+		awayCSS = `${hoverEffect} ${selected == awayId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== awayId) ? "grayscale" : ""}`;
+		homeCSS = `${hoverEffect} ${selected == homeId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== homeId) ? "grayscale" : ""}`;
 	}
 </script>
 
 <div class="max-w-sm mx-auto mt-12 border-black rounded-lg border-solid border p-4 space-y-2">
 	<p class="text-lg font-medium mb-4 text-center">{awayName} at {homeName}</p>
-	<div class="flex space-x-4 items-center justify-center">
-		<button
+	<p>{formattedStartTime}</p>
+	<div class="flex space-x-4 items-center justify-center text-center">
+		<div>
+			<button
 			type="button"
 			on:click={() => (selected = awayId)}
 			class={awayCSS}
 			aria-label="{awayName} logo"
-		>
-			<img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain" />
-		</button>
-		<button
+			>
+				<img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain" />
+			</button>
+			<p>{awayTeam.score}</p>
+		</div>
+		
+		<div>
+			<button
 			type="button"
 			on:click={() => (selected = homeId)}
 			class={homeCSS}
 			aria-label="{homeName} logo"
-		>
-			<img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain" />
-		</button>
+			>
+				<img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain" />
+			</button>
+			<p>{homeTeam.score}</p>
+		</div>
+		
 	</div>
 
 	{#if isSpread}

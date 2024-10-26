@@ -1,6 +1,12 @@
 import type { PageServerLoad } from './$types';
-import { fetchScores, SeasonWeeks, assertFullSeasonData, assertSeasonTypes } from '$lib/espnApi';
-import type { EspnScoreboardResponse, FullSeasonData } from '$lib/espnApi';
+import {
+	fetchScores,
+	SeasonWeeks,
+	assertFullSeasonData,
+	assertSeasonTypes,
+	chronologicalSort
+} from '$lib/espnApi';
+import type { EspnScoreboardResponse } from '$lib/espnApi';
 
 export const load = (async () => {
 	//No params gives current week
@@ -23,6 +29,7 @@ export const load = (async () => {
 			} else {
 				weekData = currentWeekData;
 			}
+			weekData.events = chronologicalSort(weekData.events);
 
 			scores[week] = weekData;
 		})

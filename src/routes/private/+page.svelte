@@ -2,33 +2,35 @@
 	// import { onMount } from "svelte";
 	import { teams, fetchScores } from '$lib/espnApi';
 	import type { EspnEvent, EspnScoreboardResponse, SeasonTypes, TeamIds } from '$lib/espnApi';
+	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
+	
 
 	export let data;
 
 	let { scores, currentYear, currentWeek, seasontype, weeks } = data;
 
-	let week = currentWeek;
+	let selectedWeek = currentWeek;
 	let dates = String(currentYear);
 
 	let spreadGames: TeamIds[] = ['5', '7', '8'];
-	let byeTeams = scores[week].week.teamsOnBye;
+	let byeTeams = scores[selectedWeek].week.teamsOnBye;
 
-	$: byeTeams = scores[week].week.teamsOnBye;
+	$: byeTeams = scores[selectedWeek].week.teamsOnBye;
 </script>
 
 {#if scores}
-	<select bind:value={week} class="text-black">
+	<TabGroup justify="justify-center">
 		{#each weeks as week}
-			<option value={week}>Week {week}</option>
+			<Tab bind:group={selectedWeek} name="Week {week}" value={week}>Week {week}</Tab>
 		{/each}
-	</select>
+	</TabGroup>
+		
 
 	<div class="flex flex-wrap gap-4">
-		{#each scores[week].events as event (event.id)}
+		{#each scores[selectedWeek].events as event (event.id)}
 			<Game
-				homeId={event.competitions[0].competitors[0].id}
-				awayId={event.competitions[0].competitors[1].id}
+				event={event}
 				isSpread={spreadGames.includes(event.competitions[0].competitors[0].id)}
 			></Game>
 		{/each}
