@@ -73,7 +73,7 @@ export const teams: Record<TeamIds, string> = {
 	'29': 'Panthers',
 	'30': 'Jaguars',
 	'33': 'Ravens',
-	'34': 'Cowboys'
+	'34': 'Texans'
 };
 
 //Zod no likey non-string enums

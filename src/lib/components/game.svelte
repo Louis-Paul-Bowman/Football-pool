@@ -1,9 +1,11 @@
+<svelte:options accessors={true}/>
 <script lang="ts">
 	import { teams, type TeamIds, type EspnCompetitor, type EspnEvent, type ValidTeamIds} from '$lib/espnApi';
 	import { formatDate } from "$lib/helpers";
 	import {CheckIcon, XIcon} from "lucide-svelte"
 	export let event: EspnEvent 
 	export let isSpread: boolean;
+	//export this to let the submit event get the selection and to populate selections from db for prior weeks
 	export let selected: TeamIds | null = null;
 	export let selectable: boolean = false
 
@@ -31,7 +33,11 @@
 	const awayName = teams[awayTeam.id];
 	const awayLogo = `/img/logos/svg/${awayId}.svg`;
 
-	let spread: Number | null = isSpread ? 1 : null;
+	//export this to let the submit event get the name to warn users if they forget to select a team
+	export const name = `${awayName} at ${homeName}`
+
+	//export this to let the submit event get the spread
+	export let spread: Number | null = isSpread ? 1 : null;
 
 	const startTime = new Date(event.date)
 	const formattedStartTime = formatDate(startTime)
@@ -55,7 +61,7 @@
 	{#if gameURL !== null}
 		<a class="text-lg font-medium mb-4 text-center block underline" href="{gameURL}" target="_blank" rel="noopener noreferrer">{awayName} at {homeName}</a>
 	{:else}
-		<p class="text-lg font-medium mb-4 text-center">{awayName} at {homeName}</p>
+		<p class="text-lg font-medium mb-4 text-center">{name}</p>
 	{/if}
 	
 	<p>{formattedStartTime}</p>
