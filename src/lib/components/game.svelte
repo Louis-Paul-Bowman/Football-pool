@@ -1,12 +1,19 @@
 <script lang="ts">
 	import { teams, type TeamIds, type EspnCompetitor, type EspnEvent, type ValidTeamIds} from '$lib/espnApi';
 	import { formatDate } from "$lib/helpers";
+	import {CheckIcon, XIcon} from "lucide-svelte"
 	export let event: EspnEvent 
 	export let isSpread: boolean;
 	export let selected: TeamIds | null = null;
 
 	const competition = event.competitions[0]
 	const competitors = competition.competitors
+	let gameURL: string | null = null
+	event.links.forEach((link) => {
+		if (link.text === "Gamecast"){
+			gameURL = link.href
+		}
+	})
 	
 	if (competitors.length != 2){
 		throw new Error("Invalid number of competitors");
@@ -44,7 +51,12 @@
 </script>
 
 <div class="max-w-sm mx-auto mt-12 border-black rounded-lg border-solid border p-4 space-y-2">
-	<p class="text-lg font-medium mb-4 text-center">{awayName} at {homeName}</p>
+	{#if gameURL !== null}
+		<a class="text-lg font-medium mb-4 text-center block underline" href="{gameURL}" target="_blank" rel="noopener noreferrer">{awayName} at {homeName}</a>
+	{:else}
+		<p class="text-lg font-medium mb-4 text-center">{awayName} at {homeName}</p>
+	{/if}
+	
 	<p>{formattedStartTime}</p>
 	<div class="flex space-x-4 items-center justify-center text-center">
 		<div>
@@ -70,13 +82,30 @@
 			</button>
 			<p>{homeTeam.score}</p>
 		</div>
+
 		
 	</div>
 
-	{#if isSpread}
-		<div class="flex space-x-2 items-center justify-center">
+	<div class="flex space-x-2 items-center justify-center">
+		{#if isSpread}
+			{#if selected !== null}
+				<p>{teams[selected] }</p>
+			{/if}
 			<p>By</p>
 			<input bind:value={spread} type="number" min="1" max="100" step="1" class="text-black" />
-		</div>
+		{/if}
+	</div>
+
+
+	{#if event.status.type.completed}
+	<div class="flex items-center justify-center text-center">
+		{#if selected === leader}
+			<CheckIcon color="green"></CheckIcon>
+		{:else}
+			<XIcon color="red"></XIcon>
+		{/if}
+	</div>
 	{/if}
 </div>
+
+
