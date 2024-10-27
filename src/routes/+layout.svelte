@@ -39,7 +39,7 @@
 
 <Toast />
 <!-- App Shell -->
-<AppShell>
+<AppShell scrollbarGutter="stable">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
 		<AppBar>

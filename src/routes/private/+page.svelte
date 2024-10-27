@@ -1,7 +1,7 @@
 <script lang="ts">
 	// import { onMount } from "svelte";
-	import { teams, fetchScores } from '$lib/espnApi';
-	import type { EspnEvent, EspnScoreboardResponse, SeasonTypes, TeamIds } from '$lib/espnApi';
+	import { teams } from '$lib/espnApi';
+	import type { TeamIds } from '$lib/espnApi';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
 
@@ -12,7 +12,6 @@
 	let { scores, currentYear, currentWeek, seasontype, weeks } = data;
 
 	let selectedWeek = currentWeek;
-	let dates = String(currentYear);
 
 	let spreadGames: TeamIds[] = ['5', '7', '8'];
 	let byeTeams = scores[selectedWeek].week.teamsOnBye;
@@ -80,7 +79,7 @@
 		
 	
 
-	<div class="flex flex-wrap gap-4">
+	<div class="flex flex-wrap gap-x-10 gap-y-4">
 		{#each scores[selectedWeek].events as event (event.id)}
 			<!-- Make sure events are sorted chronologically -->
 			<Game
@@ -90,18 +89,22 @@
 				selectable={selectable(scores[selectedWeek].events[0].date)} 
 			></Game>
 		{/each}
+		{#if byeTeams !== undefined}
+			<div class="max-w-sm mx-auto mt-12 border-black rounded-lg border-dashed border-4 p-4 space-y-2 text-center">
+				<h1>Bye teams</h1>
+				<div class="grid grid-flow-col grid-rows-2">
+					{#each byeTeams as team (team.id)}
+					<img
+						src={`/img/logos/svg/${team.id}.svg`}
+						alt="{teams[team.id]} logo"
+						class="w-20 h-20 object-contain"
+					/>
+					{/each}
+				</div>
+				
+			</div>
+{/if}
 	</div>
 {/if}
 
-{#if byeTeams !== undefined}
-	<h1>Bye teams</h1>
-	<div class="flex flex-wrap gap-4">
-		{#each byeTeams as team (team.id)}
-			<img
-				src={`/img/logos/svg/${team.id}.svg`}
-				alt="{teams[team.id]} logo"
-				class="w-20 h-20 object-contain"
-			/>
-		{/each}
-	</div>
-{/if}
+
