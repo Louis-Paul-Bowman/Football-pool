@@ -51,10 +51,10 @@
 					<p>{data.user.user_metadata.display_name}</p>
 					<Avatar src={avatarImg}></Avatar>	
 					<form class="" method="post" action="/?/logout">
-						<button class="button w-16 text-center rounded-lg variant-outline-surface">Logout</button>	
+						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>	
 					</form>
 				{:else}
-					<a class="button w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a>	
+					<a class="btn w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a>	
 				{/if}
 			</svelte:fragment>
 		</AppBar>

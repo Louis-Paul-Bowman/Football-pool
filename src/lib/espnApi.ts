@@ -137,7 +137,7 @@ export type EspnLeague = z.infer<typeof EspnLeagueSchema>;
 export const EspnCompetitorSchema = z.object({
 	homeAway: z.enum(['home', 'away']),
 	id: TeamIdsSchema,
-	score: z.string(),
+	score: z.coerce.number().int(), //actually a string in the API response but for ease of use cast to number
 	winner: z.boolean().optional()
 });
 export type EspnCompetitor = z.infer<typeof EspnCompetitorSchema>;

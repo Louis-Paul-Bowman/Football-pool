@@ -15,23 +15,41 @@
 
 	let spreadGames: TeamIds[] = ['5', '7', '8'];
 	let byeTeams = scores[selectedWeek].week.teamsOnBye;
+	
+
+	function selectable(weekStart:string): boolean {
+		let now = new Date(Date.now())
+		let cutoffTime = new Date(weekStart)
+		cutoffTime.setHours(cutoffTime.getHours() - 2)
+		return now < cutoffTime
+	}
 
 	$: byeTeams = scores[selectedWeek].week.teamsOnBye;
 </script>
 
 {#if scores}
+	<div>
 	<TabGroup justify="justify-center">
 		{#each weeks as week}
 			<Tab bind:group={selectedWeek} name="Week {week}" value={week}>Week {week}</Tab>
 		{/each}
+		{#if selectable(scores[selectedWeek].events[0].date)}
+			<button class="btn w-16 text-center rounded-lg variant-filled-surface">Submit</button>
+		{/if}
 	</TabGroup>
+	
+	</div>
+
 		
+	
 
 	<div class="flex flex-wrap gap-4">
 		{#each scores[selectedWeek].events as event (event.id)}
+			<!-- Make sure events are sorted chronologically -->
 			<Game
 				event={event}
 				isSpread={spreadGames.includes(event.competitions[0].competitors[0].id)}
+				selectable={selectable(scores[selectedWeek].events[0].date)} 
 			></Game>
 		{/each}
 	</div>

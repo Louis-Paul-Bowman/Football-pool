@@ -5,6 +5,7 @@
 	export let event: EspnEvent 
 	export let isSpread: boolean;
 	export let selected: TeamIds | null = null;
+	export let selectable: boolean = false
 
 	const competition = event.competitions[0]
 	const competitors = competition.competitors
@@ -45,8 +46,8 @@
 
 	$: {
 		leader = awayTeam.score > homeTeam.score ? awayTeam.id : homeTeam.score > awayTeam.score ? homeTeam.id : null
-		awayCSS = `${hoverEffect} ${selected == awayId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== awayId) ? "grayscale" : ""}`;
-		homeCSS = `${hoverEffect} ${selected == homeId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== homeId) ? "grayscale" : ""}`;
+		awayCSS = `${selectable ? hoverEffect : ""} ${selected == awayId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== awayId) ? "grayscale" : ""}`;
+		homeCSS = `${selectable ? hoverEffect : ""} ${selected == homeId ? selectedEffect : 'border-transparent'} transition-colors duration-300 ${(leader !== null && leader !== homeId) ? "grayscale" : ""}`;
 	}
 </script>
 
@@ -60,26 +61,34 @@
 	<p>{formattedStartTime}</p>
 	<div class="flex space-x-4 items-center justify-center text-center">
 		<div>
-			<button
-			type="button"
-			on:click={() => (selected = awayId)}
-			class={awayCSS}
-			aria-label="{awayName} logo"
-			>
-				<img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain" />
-			</button>
+			{#if selectable}
+				<button
+				type="button"
+				on:click={() => (selected = awayId)}
+				aria-label="{awayName} logo"
+				>
+					<img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain {awayCSS}" />
+				</button>
+				
+			{:else}
+				<img src={awayLogo} alt="{awayName} logo" class="w-20 h-20 object-contain {awayCSS}" />
+			{/if}
 			<p>{awayTeam.score}</p>
+			
 		</div>
 		
 		<div>
-			<button
-			type="button"
-			on:click={() => (selected = homeId)}
-			class={homeCSS}
-			aria-label="{homeName} logo"
-			>
-				<img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain" />
-			</button>
+			{#if selectable}
+				<button
+				type="button"
+				on:click={() => (selected = homeId)}
+				aria-label="{homeName} logo"
+				>
+					<img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain {homeCSS}" />
+				</button>
+			{:else}
+				<img src={homeLogo} alt="{homeName} logo" class="w-20 h-20 object-contain {homeCSS}" />
+			{/if}
 			<p>{homeTeam.score}</p>
 		</div>
 

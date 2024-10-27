@@ -107,10 +107,10 @@
 							</label>
 							<span class="w-full flex justify-between">
 								{#if tabSet === 0}
-									<button class="button w-1/4 rounded-lg variant-outline-surface">Log in</button>
+									<button class="btn w-1/4 rounded-lg variant-outline-surface">Log in</button>
 								{/if}
 								{#if tabSet === 1}
-									<button class="button w-1/4 rounded-lg variant-outline-surface" formaction="?/signup"
+									<button class="btn w-1/4 rounded-lg variant-outline-surface" formaction="?/signup"
 										>Register</button
 									>	
 								{/if}
