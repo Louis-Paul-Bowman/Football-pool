@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { chronologicalSort } from './helpers';
 
-export const ValidTeamIdsSchema = z.enum([
+export const validTeamIds = [
 	'1',
 	'2',
 	'3',
@@ -33,10 +34,14 @@ export const ValidTeamIdsSchema = z.enum([
 	'30',
 	'33',
 	'34'
-]);
+] as const;
+
+export const ValidTeamIdsSchema = z.enum(validTeamIds);
 export type ValidTeamIds = z.infer<typeof ValidTeamIdsSchema>;
 
-export const TeamIdsSchema = z.union([ValidTeamIdsSchema, z.literal('-1'), z.literal('-2')]);
+export const teamIds = [...validTeamIds, '-1', '-2'] as const;
+
+export const TeamIdsSchema = z.enum(teamIds);
 export type TeamIds = z.infer<typeof TeamIdsSchema>;
 
 export const teams: Record<TeamIds, string> = {
@@ -77,17 +82,18 @@ export const teams: Record<TeamIds, string> = {
 };
 
 //Zod no likey non-string enums
+export const seasonTypes = [1, 2, 3, 4] as const;
 export const SeasonTypesSchema = z.number().int().gte(1).lte(4);
 export type SeasonTypes = 1 | 2 | 3 | 4;
 export function assertSeasonTypes(obj: any): asserts obj is SeasonTypes {
 	SeasonTypesSchema.parse(obj);
 	return;
 }
-
-export const StrSeasonTypesSchema = z.enum(['1', '2', '3', '4']);
+export const strSeasonTypes = ['1', '2', '3', '4'] as const;
+export const StrSeasonTypesSchema = z.enum(strSeasonTypes);
 export type StrSeasonTypes = z.infer<typeof StrSeasonTypesSchema>;
 
-export const SeasonWeeks = {
+export const seasonWeeks = {
 	1: [1, 2, 3, 4],
 	2: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
 	3: [1, 2, 3, 4, 5],
@@ -241,28 +247,37 @@ export async function fetchScores(
 }
 
 export type FullSeasonData<T extends SeasonTypes> = {
-	[K in keyof (typeof SeasonWeeks)[T]]: z.infer<typeof EspnScoreboardResponseSchema>;
+	[K in keyof (typeof seasonWeeks)[T]]: z.infer<typeof EspnScoreboardResponseSchema>;
 };
 
 export function assertFullSeasonData<T extends SeasonTypes>(
 	obj: any,
 	seasonType: T
 ): asserts obj is FullSeasonData<T> {
-	SeasonWeeks[seasonType].forEach((week) => {
+	seasonWeeks[seasonType].forEach((week) => {
 		EspnScoreboardResponseSchema.parse(obj[week]);
 	});
 	return;
 }
 
-export function chronologicalSort(games: EspnEvent[], ascending: boolean = true): EspnEvent[] {
-	return [...games].sort((a, b) => {
-		const dateA = new Date(a.date);
-		const dateB = new Date(b.date);
 
-		if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
-			throw new Error('Invalid date format');
-		}
+export async function getFullSeasonData(year: number, seasontype: SeasonTypes) {
+	let weeks = seasonWeeks[seasontype];
 
-		return ascending ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-	});
+	let scores: any = {};
+
+	await Promise.all(
+		weeks.map(async (week) => {
+			let weekData: EspnScoreboardResponse;
+
+			weekData = await fetchScores(String(year), seasontype, week);
+
+			weekData.events = chronologicalSort(weekData.events);
+
+			scores[week] = weekData;
+		})
+	);
+
+	assertFullSeasonData(scores, seasontype);
+	return scores;
 }

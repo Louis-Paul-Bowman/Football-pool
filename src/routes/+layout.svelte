@@ -7,20 +7,19 @@
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
-	
+
 	//Supabase and auth
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	export let data;
 
-
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
 
 	const avatarImg = '/img/avatar/jacoby.jpg';
 
-	$: ({ session, supabase } = data)
+	$: ({ session, supabase } = data);
 
 	// the official supabase auth guide docs have a bug that logs a warning
 	// https://supabase.com/docs/guides/auth/server-side/sveltekit
@@ -49,12 +48,12 @@
 			<svelte:fragment slot="trail">
 				{#if data.user !== null}
 					<p>{data.user.user_metadata.display_name}</p>
-					<Avatar src={avatarImg}></Avatar>	
+					<Avatar src={avatarImg}></Avatar>
 					<form class="" method="post" action="/?/logout">
-						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>	
+						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>
 					</form>
 				{:else}
-					<a class="btn w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a>	
+					<a class="btn w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a>
 				{/if}
 			</svelte:fragment>
 		</AppBar>
