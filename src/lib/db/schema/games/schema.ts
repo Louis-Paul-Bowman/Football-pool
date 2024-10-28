@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, pgEnum, boolean } from 'drizzle-orm/pg-core';
 import { teamIds, strSeasonTypes } from '../../../espnApi'; //$lib syntax breaks drizzle-kit
 
 export const seasonTypesEnum = pgEnum('seasonTypesEnum', strSeasonTypes);
@@ -14,5 +14,6 @@ export const games = pgTable('games', {
 	away: teamIdsEnum('away').notNull(),
 	homeScore: integer('home_score').notNull().default(0),
 	awayScore: integer('away_score').notNull().default(0),
-	link: text('link')
+	link: text('link'),
+	final: boolean("final").default(false)
 });

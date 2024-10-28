@@ -44,7 +44,8 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
                 away: awayId,
                 homeScore: homeTeam.score,
                 awayScore: awayTeam.score,
-                link:url
+                link:url,
+				final:event.status.type.completed
 			});
 		});
 	}
