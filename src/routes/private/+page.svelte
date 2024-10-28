@@ -45,8 +45,8 @@
 		})
 
 		if (unselected.length > 0){
-			toastStore.trigger({message: `Please select a team for the following games: ${unselected.join(", ")}`,
-			timeout: 5000,
+			toastStore.trigger({message: `Please select a team for the following games: ${unselected.join(", ")}. Make sure you scroll to the bottom!`,
+			timeout: 15000,
 			background: 'variant-filled-error'
 		})
 		return
