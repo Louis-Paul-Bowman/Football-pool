@@ -1,1 +1,0 @@
-ALTER TABLE "games" ADD COLUMN "final" boolean DEFAULT false;

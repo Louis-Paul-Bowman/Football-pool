@@ -10,7 +10,7 @@ if (!DATABASE_URI)
 	throw new Error('Missing DB credential environment variables. Set them in .env.');
 
 export default {
-	schema: './src/lib/db/schema/*',
+	schema: './src/lib/db/schemas/*',
 	out: './src/lib/db/migrations',
 	dialect: 'postgresql',
 	dbCredentials: { url: DATABASE_URI },

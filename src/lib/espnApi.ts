@@ -246,14 +246,14 @@ export async function fetchScores(
 	return EspnScoreboardResponseSchema.parse(respData);
 }
 
-export type FullSeasonData<T extends SeasonTypes> = {
+export type EspnFullSeasonData<T extends SeasonTypes> = {
 	[K in keyof (typeof seasonWeeks)[T]]: z.infer<typeof EspnScoreboardResponseSchema>;
 };
 
-export function assertFullSeasonData<T extends SeasonTypes>(
+export function assertEspnFullSeasonData<T extends SeasonTypes>(
 	obj: any,
 	seasonType: T
-): asserts obj is FullSeasonData<T> {
+): asserts obj is EspnFullSeasonData<T> {
 	seasonWeeks[seasonType].forEach((week) => {
 		EspnScoreboardResponseSchema.parse(obj[week]);
 	});
@@ -261,7 +261,7 @@ export function assertFullSeasonData<T extends SeasonTypes>(
 }
 
 
-export async function getFullSeasonData(year: number, seasontype: SeasonTypes) {
+export async function getEspnFullSeasonData(year: number, seasontype: SeasonTypes) {
 	let weeks = seasonWeeks[seasontype];
 
 	let scores: any = {};
@@ -278,6 +278,6 @@ export async function getFullSeasonData(year: number, seasontype: SeasonTypes) {
 		})
 	);
 
-	assertFullSeasonData(scores, seasontype);
+	assertEspnFullSeasonData(scores, seasontype);
 	return scores;
 }

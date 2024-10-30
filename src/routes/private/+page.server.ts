@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { fetchScores, assertSeasonTypes, getFullSeasonData } from '$lib/espnApi';
+import { fetchScores, assertSeasonTypes, getEspnFullSeasonData } from '$lib/espnApi';
+import { getFullSeasonData } from '$lib/db/funcs.server';
 
 export const load = (async () => {
 	//No params gives current week
@@ -10,8 +11,8 @@ export const load = (async () => {
 	let seasontype = currentWeekData.season.type;
 	assertSeasonTypes(seasontype);
 
-	let scores = await getFullSeasonData(currentYear, seasontype);
+	let seasonData = await getFullSeasonData(seasontype);
 
-	const data = { scores, currentYear, currentWeek, seasontype };
+	const data = { seasonData, currentYear, currentWeek, seasontype };
 	return data;
 }) satisfies PageServerLoad;
