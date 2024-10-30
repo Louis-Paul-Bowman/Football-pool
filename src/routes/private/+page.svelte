@@ -22,7 +22,7 @@
 
 	function selectable(weekStart: string | Date): boolean {
 		let now = new Date(Date.now());
-		let cutoffTime = typeof weekStart === "string" ? new Date(weekStart) : weekStart;
+		let cutoffTime = typeof weekStart === 'string' ? new Date(weekStart) : weekStart;
 		cutoffTime.setHours(cutoffTime.getHours() - 2);
 		return now < cutoffTime;
 	}

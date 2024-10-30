@@ -29,18 +29,17 @@ function getOrdinalSuffix(day: number): string {
 }
 interface DatedObject {
 	date: string | Date;
-  }
-  
-export function chronologicalSort<T extends DatedObject>(games: T[]): T[] {
-return [...games].sort((a, b) => {
-	const dateA = typeof a.date === "string" ? new Date(a.date) : a.date;
-	const dateB = typeof b.date === "string" ? new Date(b.date) : b.date;
-
-	if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
-	throw new Error('Invalid date format');
-	}
-
-	return dateA.getTime() - dateB.getTime();
-});
 }
-  
+
+export function chronologicalSort<T extends DatedObject>(games: T[]): T[] {
+	return [...games].sort((a, b) => {
+		const dateA = typeof a.date === 'string' ? new Date(a.date) : a.date;
+		const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
+
+		if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+			throw new Error('Invalid date format');
+		}
+
+		return dateA.getTime() - dateB.getTime();
+	});
+}

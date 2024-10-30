@@ -260,7 +260,6 @@ export function assertEspnFullSeasonData<T extends SeasonTypes>(
 	return;
 }
 
-
 export async function getEspnFullSeasonData(year: number, seasontype: SeasonTypes) {
 	let weeks = seasonWeeks[seasontype];
 

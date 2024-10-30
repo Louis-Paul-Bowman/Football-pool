@@ -14,6 +14,6 @@ export const games = pgTable('games', {
 	homeScore: integer('home_score').notNull().default(0),
 	awayScore: integer('away_score').notNull().default(0),
 	link: text('link'),
-	active: boolean("active").default(false),
-	final: boolean("final").default(false)
+	active: boolean('active').notNull().default(false),
+	final: boolean('final').notNull().default(false)
 });
