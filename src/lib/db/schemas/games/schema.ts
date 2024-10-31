@@ -15,5 +15,6 @@ export const games = pgTable('games', {
 	awayScore: integer('away_score').notNull().default(0),
 	link: text('link'),
 	active: boolean('active').notNull().default(false),
-	final: boolean('final').notNull().default(false)
+	final: boolean('final').notNull().default(false),
+	updated: timestamp('updated').notNull()
 });

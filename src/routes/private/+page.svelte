@@ -88,7 +88,7 @@
 				selectable={selectable(game.date)}
 			></Game>
 		{/each}
-		{#if byeTeams !== undefined}
+		{#if byeTeams.length > 0}
 			<div
 				class="max-w-sm mx-auto mt-12 border-black rounded-lg border-dashed border-4 p-4 space-y-2 text-center"
 			>

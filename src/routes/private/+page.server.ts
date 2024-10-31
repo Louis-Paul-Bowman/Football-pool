@@ -11,7 +11,7 @@ export const load = (async () => {
 	let seasontype = currentWeekData.season.type;
 	assertSeasonTypes(seasontype);
 
-	let seasonData = await getFullSeasonData(seasontype);
+	let seasonData = await getFullSeasonData(currentYear, seasontype);
 
 	const data = { seasonData, currentYear, currentWeek, seasontype };
 	return data;

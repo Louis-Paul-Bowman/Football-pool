@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS "games" (
 	"home_score" integer DEFAULT 0 NOT NULL,
 	"away_score" integer DEFAULT 0 NOT NULL,
 	"link" text,
-	"active" boolean DEFAULT false,
-	"final" boolean DEFAULT false,
+	"active" boolean DEFAULT false NOT NULL,
+	"final" boolean DEFAULT false NOT NULL,
+	"updated" timestamp NOT NULL,
 	CONSTRAINT "games_id_unique" UNIQUE("id")
 );

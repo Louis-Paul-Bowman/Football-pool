@@ -1,5 +1,5 @@
 {
-	"id": "6f3f0b38-4a17-4727-8edb-993ca570cdba",
+	"id": "3e26b58f-6095-4c62-9054-b7ade0e5a5f3",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -118,15 +118,21 @@
 					"name": "active",
 					"type": "boolean",
 					"primaryKey": false,
-					"notNull": false,
+					"notNull": true,
 					"default": false
 				},
 				"final": {
 					"name": "final",
 					"type": "boolean",
 					"primaryKey": false,
-					"notNull": false,
+					"notNull": true,
 					"default": false
+				},
+				"updated": {
+					"name": "updated",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true
 				}
 			},
 			"indexes": {},

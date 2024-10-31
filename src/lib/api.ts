@@ -36,7 +36,8 @@ export function EspnEventtoGame(event: EspnEvent, week: Number): typeof games.$i
 		awayScore: awayTeam.score,
 		link: url,
 		active: event.status.type.state === 'in',
-		final: event.status.type.completed
+		final: event.status.type.completed,
+		updated: new Date(Date.now())
 	};
 	return game;
 }
