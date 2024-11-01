@@ -1,7 +1,6 @@
-import type { EmailOtpType } from '@supabase/supabase-js';
-import { redirect } from '@sveltejs/kit';
-
 import type { RequestHandler } from './$types';
+import type { EmailOtpType } from '@supabase/supabase-js';
+import { redirect, error } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	const token_hash = url.searchParams.get('token_hash');
@@ -26,6 +25,5 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 		}
 	}
 
-	redirectTo.pathname = '/auth/error';
-	redirect(303, redirectTo);
+	return error(500, 'Failed to validate email.');
 };
