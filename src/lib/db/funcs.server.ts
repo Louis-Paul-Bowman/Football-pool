@@ -1,9 +1,10 @@
-import { seasonWeeks } from '$lib/espnApi';
-import type { SeasonTypes } from '$lib/espnApi';
+import { seasonWeeks, fetchScores } from '$lib/espnApi';
+import type { SeasonTypes, EspnScoreboardResponse } from '$lib/espnApi';
 import { db } from '$lib/db/db.server';
 import { games } from '$lib/db/schemas/games/schema';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { chronologicalSort } from '$lib/helpers';
+import { EspnEventtoGame } from '$lib/api';
 import type { FullSeasonData } from '$lib/api';
 import { and, inArray, eq, sql, SQL } from 'drizzle-orm';
 
@@ -95,4 +96,75 @@ export async function updateMultipleGames(
 		.where(inArray(games.id, ids))
 		.returning();
 	return res;
+}
+
+
+export function weeksNeedingUpdate<T extends SeasonTypes>(seasonData:FullSeasonData<T>, currentWeek:number, maxAgeMins:number): number[] {
+let weeksToUpdate: number[] = [];
+for (const week in seasonData) {
+	const data = seasonData[week]
+	data.games.forEach((game) => {
+		let weekNum = Number(week) //shut up typescript
+		if (weeksToUpdate.includes(weekNum)) {
+			return
+		}
+		if (game.final){
+			return
+		}
+		if (game.week > currentWeek){
+			return
+		}
+		//Games that are not final from this week or earlier
+		let ageMs = (new Date(Date.now())).getTime() - game.updated.getTime()
+		let ageMins = ageMs / (1000 * 60)
+		if (ageMins < maxAgeMins){
+			return
+		}
+		weeksToUpdate.push(weekNum)
+	})
+}	
+return weeksToUpdate
+}
+
+async function getUpdates(currentYear:number, seasonType:number, weeksToUpdate:number[]){
+	let updates: GameUpdate[][] = await Promise.all(
+		weeksToUpdate.map(async (week) => {
+			let weekData: EspnScoreboardResponse;
+
+			//data from ESPN
+			weekData = await fetchScores(String(currentYear), seasonType, week);
+
+			return weekData.events.map((event) => {
+				let game = EspnEventtoGame(event, week);
+
+				return {
+					id: game.id,
+					updated: new Date(Date.now()),
+					homeScore: game.homeScore,
+					awayScore: game.awayScore,
+					active: game.active,
+					final: game.final
+				};
+			});
+		})
+	);
+	return updates
+}
+
+export async function getLiveData(currentYear:number,  seasonType:SeasonTypes, currentWeek:number, maxAgeMins:number) {
+	//(Possibly out of date) data from DB
+	let data = await getFullSeasonData(currentYear, seasonType)
+
+	//Figure out what DB data needs to be updated in the DB
+	let weeksToUpdate = weeksNeedingUpdate(data, currentWeek, maxAgeMins)
+
+	//Apply updates to DB
+	let updates = await getUpdates(currentYear, seasonType, weeksToUpdate);
+	let affected = await updateMultipleGames(updates.flat());
+
+	//Avoid a new DB call by updating in place from update return
+	weeksToUpdate.forEach((week) => data[week].games = []);
+	affected.forEach((game) => data[game.week].games.push(game));
+	weeksToUpdate.forEach((week) => (data[week].games = chronologicalSort(data[week].games)));
+	return data
 }

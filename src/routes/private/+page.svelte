@@ -16,7 +16,6 @@
 	let selectedWeek = currentWeek;
 
 	let spreadGames: TeamIds[] = ['5', '7', '8'];
-	let byeTeams = seasonData[selectedWeek].byes;
 
 	let gameComponents: Record<string, Game> = {};
 
@@ -26,8 +25,6 @@
 		cutoffTime.setHours(cutoffTime.getHours() - 2);
 		return now < cutoffTime;
 	}
-
-	$: byeTeams = seasonData[selectedWeek].byes;
 
 	function handleSubmit() {
 		let gameIds = seasonData[selectedWeek].games.map((game) => game.id);
@@ -85,16 +82,16 @@
 				bind:this={gameComponents[game.id]}
 				{game}
 				isSpread={spreadGames.includes(game.home)}
-				selectable={selectable(game.date)}
+				selectable={selectable(seasonData[selectedWeek].games[0].date)}
 			></Game>
 		{/each}
-		{#if byeTeams.length > 0}
+		{#if seasonData[selectedWeek].byes.length > 0}
 			<div
 				class="max-w-sm mx-auto mt-12 border-black rounded-lg border-dashed border-4 p-4 space-y-2 text-center"
 			>
 				<h1>Bye teams</h1>
 				<div class="grid grid-flow-col grid-rows-2">
-					{#each byeTeams as teamId}
+					{#each seasonData[selectedWeek].byes as teamId}
 						<img
 							src={`/img/logos/svg/${teamId}.svg`}
 							alt="{teams[teamId]} logo"
