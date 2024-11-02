@@ -1,5 +1,4 @@
-import { pgTable, serial, text, boolean, integer, check } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
 import { leagues } from '../leagues/+schema';
 import { players } from '../players/+schema';
 import { games, teamIdsEnum } from '../games/schema';

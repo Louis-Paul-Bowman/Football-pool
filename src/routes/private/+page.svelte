@@ -2,6 +2,7 @@
 	// import { onMount } from "svelte";
 	import { teams, seasonWeeks } from '$lib/espnApi';
 	import type { TeamIds } from '$lib/espnApi';
+	import { selectable } from '$lib/helpers.js';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
 
@@ -19,14 +20,9 @@
 
 	let gameComponents: Record<string, Game> = {};
 
-	function selectable(weekStart: string | Date): boolean {
-		let now = new Date(Date.now());
-		let cutoffTime = typeof weekStart === 'string' ? new Date(weekStart) : weekStart;
-		cutoffTime.setHours(cutoffTime.getHours() - 2);
-		return now < cutoffTime;
-	}
+	
 
-	function handleSubmit() {
+	async function handleSubmit() {
 		let gameIds = seasonData[selectedWeek].games.map((game) => game.id);
 		const selections = gameIds.map((id) => ({
 			eventId: id,
@@ -51,12 +47,11 @@
 			return;
 		}
 
-		toastStore.trigger({
-			message: `${'Success!'}`,
-			timeout: 3000,
-			background: 'variant-filled-success'
+		let resp = await fetch("/private/picks", {method:"post",
+			body:JSON.stringify({leagueId:1, selections})
 		});
-		console.log(selections);
+		let text = await resp.text()
+		console.log(text)
 	}
 </script>
 

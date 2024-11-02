@@ -8,11 +8,13 @@ import {
 	StrSeasonTypesSchema,
 	type SeasonTypes,
 	type StrSeasonTypes,
-	type TeamIds
+	type TeamIds,
+	fetchScores
 } from '$lib/espnApi';
 import { error } from '@sveltejs/kit';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { EspnEventtoGame } from '$lib/api';
+import { leagues, type WeekStarts } from '$lib/db/schemas/leagues/+schema';
 
 export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
@@ -49,7 +51,32 @@ export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	}
 	const insertedGames = await db.insert(games).values(gamesInserts).returning();
 	const insertedByes = await db.insert(byes).values(byesInserts).returning();
+
+	let leaguesInserts: (typeof leagues.$inferInsert)[] = [];
+
+	let currentWeek = await fetchScores();
+	let calendar = currentWeek.leagues[0].calendar;
+	let season = calendar[seasonType - 1];
+	let seasonWeeks: WeekStarts = {};
+
+	season.entries.forEach((game) => {
+		seasonWeeks[Number(game.value)] = {
+			start: new Date(game.startDate),
+			end: new Date(game.endDate)
+		};
+	});
+
+	leaguesInserts.push({
+		year,
+		seasonType,
+		start: new Date(season.startDate),
+		end: new Date(season.endDate),
+		weeks: seasonWeeks
+	});
+
+	const insertedLeagues = await db.insert(leagues).values(leaguesInserts).returning();
+
 	return new Response(
-		`Success. Inserted ${insertedGames.length} games and ${insertedByes.length} byes.`
+		`Success. Inserted ${insertedGames.length} games,  ${insertedByes.length} byes, and ${insertedLeagues.length} leagues.`
 	);
 };

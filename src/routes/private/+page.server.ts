@@ -1,5 +1,10 @@
 import type { PageServerLoad } from './$types';
-import { fetchScores, assertSeasonTypes, getEspnFullSeasonData, type SeasonTypes } from '$lib/espnApi';
+import {
+	fetchScores,
+	assertSeasonTypes,
+	getEspnFullSeasonData,
+	type SeasonTypes
+} from '$lib/espnApi';
 import { getFullSeasonData, getLiveData } from '$lib/db/funcs.server';
 
 export const load = (async () => {
@@ -12,8 +17,14 @@ export const load = (async () => {
 	// assertSeasonTypes(seasontype);
 	let currentYear = 2024;
 	let currentWeek = 9;
-	let seasontype:SeasonTypes = 2;
+	let seasontype: SeasonTypes = 2;
 	let maxAgeMins = 5;
+
+	// let now = new Date(Date.now());
+	// let activeLeagues = await db
+	// 	.select()
+	// 	.from(leagues)
+	// 	.where(and(lte(leagues.start, now), gte(leagues.end, now)));
 
 	let seasonData = await getLiveData(currentYear, seasontype, currentWeek, maxAgeMins);
 
