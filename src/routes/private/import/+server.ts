@@ -14,7 +14,7 @@ import {
 import { error } from '@sveltejs/kit';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { EspnEventtoGame } from '$lib/api';
-import { leagues, type WeekStarts } from '$lib/db/schemas/leagues/+schema';
+import { leagues, type LeagueWeeks } from '$lib/db/schemas/leagues/+schema';
 
 export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
@@ -57,7 +57,7 @@ export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	let currentWeek = await fetchScores();
 	let calendar = currentWeek.leagues[0].calendar;
 	let season = calendar[seasonType - 1];
-	let seasonWeeks: WeekStarts = {};
+	let seasonWeeks: LeagueWeeks = {};
 
 	season.entries.forEach((game) => {
 		seasonWeeks[Number(game.value)] = {

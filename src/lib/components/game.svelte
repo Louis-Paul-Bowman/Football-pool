@@ -27,7 +27,7 @@
 	export const name = `${awayName} at ${homeName}`;
 
 	//export this to let the submit event get the spread
-	export let spread: Number | null = isSpread ? 1 : null;
+	export let spread: number | null = isSpread ? 1 : null;
 
 	const formattedStartTime = formatDate(game.date);
 

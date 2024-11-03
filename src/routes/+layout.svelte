@@ -52,7 +52,7 @@
 					<form class="" method="post" action="/?/logout">
 						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>
 					</form>
-				<!-- {:else}
+					<!-- {:else}
 					<a class="btn w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a> -->
 				{/if}
 			</svelte:fragment>

@@ -4,7 +4,7 @@ import { validTeamIds } from '../../../espnApi'; //$lib syntax breaks drizzle-ki
 export const validTeamIdsEnum = pgEnum('validTeamIdsEnum', validTeamIds);
 
 export const byes = pgTable('byes', {
-	id: serial().primaryKey(),
+	id: serial().notNull().primaryKey(),
 	year: integer('year').notNull(),
 	seasonType: integer('seasonType').notNull(),
 	week: integer('week').notNull(),

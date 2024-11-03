@@ -4,7 +4,7 @@ import { teamIds } from '../../../espnApi'; //$lib syntax breaks drizzle-kit
 export const teamIdsEnum = pgEnum('teamIdsEnum', teamIds);
 
 export const games = pgTable('games', {
-	id: text('id').unique().primaryKey(),
+	id: text('id').notNull().unique().primaryKey(),
 	year: integer('year').notNull(),
 	seasonType: integer('seasonType').notNull(),
 	week: integer('week').notNull(),

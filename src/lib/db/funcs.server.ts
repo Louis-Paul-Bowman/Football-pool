@@ -3,6 +3,7 @@ import type { SeasonTypes, EspnScoreboardResponse } from '$lib/espnApi';
 import { db } from '$lib/db/db.server';
 import { games } from '$lib/db/schemas/games/schema';
 import { byes } from '$lib/db/schemas/byes/schema';
+import { picks } from './schemas/picks/+schema';
 import { chronologicalSort } from '$lib/helpers';
 import { EspnEventtoGame } from '$lib/api';
 import type { FullSeasonData } from '$lib/api';
@@ -39,7 +40,7 @@ export interface GameUpdate {
 	final?: typeof games.$inferInsert.final;
 }
 
-const createCaseStatement = (columnName: keyof GameUpdate, updates: GameUpdate[]) => {
+const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpdate[]) => {
 	const sqlChunks: SQL[] = [sql`(case`];
 
 	for (const update of updates) {
@@ -76,11 +77,11 @@ export async function updateMultipleGames(
 ): Promise<(typeof games.$inferSelect)[]> {
 	if (updates.length === 0) return [];
 
-	const updatedCase = createCaseStatement('updated', updates);
-	const homeScoreCase = createCaseStatement('homeScore', updates);
-	const awayScoreCase = createCaseStatement('awayScore', updates);
-	const activeCase = createCaseStatement('active', updates);
-	const finalCase = createCaseStatement('final', updates);
+	const updatedCase = createGamesCaseStatement('updated', updates);
+	const homeScoreCase = createGamesCaseStatement('homeScore', updates);
+	const awayScoreCase = createGamesCaseStatement('awayScore', updates);
+	const activeCase = createGamesCaseStatement('active', updates);
+	const finalCase = createGamesCaseStatement('final', updates);
 
 	const ids = updates.map((update) => update.id);
 
@@ -98,35 +99,38 @@ export async function updateMultipleGames(
 	return res;
 }
 
-
-export function weeksNeedingUpdate<T extends SeasonTypes>(seasonData:FullSeasonData<T>, currentWeek:number, maxAgeMins:number): number[] {
-let weeksToUpdate: number[] = [];
-for (const week in seasonData) {
-	const data = seasonData[week]
-	data.games.forEach((game) => {
-		let weekNum = Number(week) //shut up typescript
-		if (weeksToUpdate.includes(weekNum)) {
-			return
-		}
-		if (game.final){
-			return
-		}
-		if (game.week > currentWeek){
-			return
-		}
-		//Games that are not final from this week or earlier
-		let ageMs = (new Date(Date.now())).getTime() - game.updated.getTime()
-		let ageMins = ageMs / (1000 * 60)
-		if (ageMins < maxAgeMins){
-			return
-		}
-		weeksToUpdate.push(weekNum)
-	})
-}	
-return weeksToUpdate
+export function weeksNeedingUpdate<T extends SeasonTypes>(
+	seasonData: FullSeasonData<T>,
+	currentWeek: number,
+	maxAgeMins: number
+): number[] {
+	let weeksToUpdate: number[] = [];
+	for (const week in seasonData) {
+		const data = seasonData[week];
+		data.games.forEach((game) => {
+			let weekNum = Number(week); //shut up typescript
+			if (weeksToUpdate.includes(weekNum)) {
+				return;
+			}
+			if (game.final) {
+				return;
+			}
+			if (game.week > currentWeek) {
+				return;
+			}
+			//Games that are not final from this week or earlier
+			let ageMs = new Date(Date.now()).getTime() - game.updated.getTime();
+			let ageMins = ageMs / (1000 * 60);
+			if (ageMins < maxAgeMins) {
+				return;
+			}
+			weeksToUpdate.push(weekNum);
+		});
+	}
+	return weeksToUpdate;
 }
 
-async function getUpdates(currentYear:number, seasonType:number, weeksToUpdate:number[]){
+async function getUpdates(currentYear: number, seasonType: number, weeksToUpdate: number[]) {
 	let updates: GameUpdate[][] = await Promise.all(
 		weeksToUpdate.map(async (week) => {
 			let weekData: EspnScoreboardResponse;
@@ -148,23 +152,90 @@ async function getUpdates(currentYear:number, seasonType:number, weeksToUpdate:n
 			});
 		})
 	);
-	return updates
+	return updates;
 }
 
-export async function getLiveData(currentYear:number,  seasonType:SeasonTypes, currentWeek:number, maxAgeMins:number) {
+export async function getLiveData(
+	currentYear: number,
+	seasonType: SeasonTypes,
+	currentWeek: number,
+	maxAgeMins: number
+) {
 	//(Possibly out of date) data from DB
-	let data = await getFullSeasonData(currentYear, seasonType)
+	let data = await getFullSeasonData(currentYear, seasonType);
 
 	//Figure out what DB data needs to be updated in the DB
-	let weeksToUpdate = weeksNeedingUpdate(data, currentWeek, maxAgeMins)
+	let weeksToUpdate = weeksNeedingUpdate(data, currentWeek, maxAgeMins);
 
 	//Apply updates to DB
 	let updates = await getUpdates(currentYear, seasonType, weeksToUpdate);
 	let affected = await updateMultipleGames(updates.flat());
 
 	//Avoid a new DB call by updating in place from update return
-	weeksToUpdate.forEach((week) => data[week].games = []);
+	weeksToUpdate.forEach((week) => (data[week].games = []));
 	affected.forEach((game) => data[game.week].games.push(game));
 	weeksToUpdate.forEach((week) => (data[week].games = chronologicalSort(data[week].games)));
-	return data
+	return data;
+}
+
+export interface PickUpdate {
+	id: NonNullable<typeof picks.$inferInsert.id>;
+	pick: typeof picks.$inferInsert.pick;
+	spread: typeof picks.$inferInsert.spread;
+}
+
+const createPicksCaseStatement = (columnName: keyof PickUpdate, updates: PickUpdate[]) => {
+	const sqlChunks: SQL[] = [sql`(case`];
+  
+	for (const update of updates) {
+	  if (update[columnName] !== undefined) {
+		let value: SQL;
+  
+		if (columnName === 'pick') {
+		  value = sql`cast(${update.pick} as "teamIdsEnum")`;
+		} else if (columnName === 'spread') {
+		  if (update.spread === null) {
+			value = sql.raw('NULL');
+		  } else {
+			value = sql`${update.spread}`;
+		  }
+		} else {
+		  throw new Error('Invalid column.');
+		}
+  
+		sqlChunks.push(sql`when ${picks.id} = ${update.id} then ${value}`);
+	  }
+	}
+  
+	sqlChunks.push(sql`end)`);
+  
+	const caseStatement = sql.join(sqlChunks, sql.raw(' '));
+  
+	if (columnName === 'spread') {
+	  return sql`cast(${caseStatement} as integer)`;
+	} else {
+	  return caseStatement;
+	}
+  };
+  
+
+export async function updateMultiplePicks(
+	updates: PickUpdate[]
+): Promise<(typeof picks.$inferSelect)[]> {
+	if (updates.length === 0) return [];
+
+	const pickCase = createPicksCaseStatement('pick', updates);
+	const spreadCase = createPicksCaseStatement('spread', updates);
+
+	const ids = updates.map((update) => update.id);
+
+	let res = db
+		.update(picks)
+		.set({
+			pick: pickCase,
+			spread: spreadCase
+		})
+		.where(inArray(picks.id, ids))
+		.returning();
+	return res;
 }

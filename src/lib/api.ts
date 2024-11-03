@@ -1,7 +1,7 @@
-import { seasonWeeks } from './espnApi';
+import { seasonWeeks, ValidTeamIdsSchema } from './espnApi';
 import type { EspnEvent, SeasonTypes, ValidTeamIds } from './espnApi';
 import { games } from './db/schemas/games/schema';
-
+import { z } from 'zod';
 export type FullSeasonData<T extends SeasonTypes> = {
 	[K in keyof (typeof seasonWeeks)[T]]: {
 		games: (typeof games.$inferSelect)[];
@@ -40,4 +40,18 @@ export function EspnEventtoGame(event: EspnEvent, week: Number): typeof games.$i
 		updated: new Date(Date.now())
 	};
 	return game;
+}
+
+export const SelectionsSchema = z.record(
+	z.string(),
+	z.object({
+		selected: ValidTeamIdsSchema,
+		spread: z.number().int().positive().nullable()
+	})
+);
+
+export type Selections = z.infer<typeof SelectionsSchema>;
+
+export function validateSelections(obj: any): asserts obj is Selections {
+	SelectionsSchema.parse(obj);
 }

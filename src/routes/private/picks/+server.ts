@@ -1,13 +1,14 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ValidTeamIdsSchema, type ValidTeamIds } from '$lib/espnApi';
-import { z } from 'zod';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/+schema';
 import { eq, and, lte, inArray } from 'drizzle-orm';
 import { leagues } from '$lib/db/schemas/leagues/+schema';
 import { games } from '$lib/db/schemas/games/schema';
 import { picks } from '$lib/db/schemas/picks/+schema';
+import { selectable } from '$lib/helpers';
+import { validateSelections } from '$lib/api';
+import { updateMultiplePicks, type PickUpdate } from '$lib/db/funcs.server';
 
 export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 	if (user === null) {
@@ -28,57 +29,73 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 		return error(400, 'Selections do not satisfy expected format.');
 	}
 
-	let eventIds: string[] = [];
-	let counts: Record<string, number> = {};
+	let eventIds: string[] = Object.keys(selections);
 
-	selections.forEach((selection) => {
-		counts[selection.eventId] = (counts[selection.eventId] ?? 0) + 1;
-		eventIds.push(selection.eventId);
-	});
-
-	let duplicateGames: string[] = [];
-
-	for (const [eventId, count] of Object.entries(counts)) {
-		if (count > 1) {
-			duplicateGames.push(eventId);
-		}
-	}
-
-	if (duplicateGames.length > 0) {
-		return error(
-			400,
-			`Games ${duplicateGames} are specified more than once. Only one pick must be made per game.`
-		);
-	}
-
-	const join = await db
+	
+	const registered = await db
 		.select()
 		.from(players)
 		.where(and(eq(players.accountUUID, user.id), eq(players.league, leagueId)))
 		.innerJoin(leagues, eq(players.league, leagues.id));
 
-	const join2 = await db
+	if (registered.length === 0) {
+		return error(400, `User is not registered in league ${leagueId}`);
+	}
+	const player = registered[0].players;
+	const league = registered[0].leagues;
+	const leagueWeeks = league.weeks
+
+	const gamesData = await db
 		.select()
 		.from(games)
-		.where(inArray(games.id, eventIds))
-		.leftJoin(picks, eq(games.id, picks.gameId));
+		.where(
+			and(
+				inArray(games.id, eventIds),
+				eq(games.year, league.year),
+				eq(games.seasonType, league.seasonType)
+			)
+		)
+		.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, player.id)));
 
-	console.log(join);
-	console.log(join2);
+	if (gamesData.length !== eventIds.length){
+		return error(400, `Not all games found. Some games aren't in league ${leagueId}`)
+	}
+	
+	let picksInserts: (typeof picks.$inferInsert)[] = []
+	let picksUpdates: PickUpdate[] = []
 
-	return new Response();
+	gamesData.forEach((element) => {
+		let game = element.games
+		let pick = element.picks
+		let weekStart = leagueWeeks[game.week].start
+
+		let {selected, spread} = selections[game.id]
+
+		if (!selectable(weekStart)){
+			return error(400, `Game ${game.id} can no longer be selected.`)
+		}
+		if (pick === null){
+			picksInserts.push({playerId:player.id, league:league.id, gameId:game.id, pick:selected, spread})
+		}
+		else {
+			picksUpdates.push({id:pick.id, pick:selected, spread})
+		}
+	})
+	console.log("inserts")
+	console.log(picksInserts)
+	console.log("updates")
+	console.log(picksUpdates)
+
+	let inserted: (typeof picks.$inferInsert)[] = []
+	let updated:  (typeof picks.$inferInsert)[] = []
+	if (picksInserts.length > 0) {
+		inserted = await db.insert(picks).values(picksInserts).returning();
+	}
+	if (picksUpdates.length > 0) {
+		updated = await updateMultiplePicks(picksUpdates)
+	}
+
+	return new Response(`Inserted ${inserted.length} picks and updated ${updated.length} picks.`);
 };
 
-const SelectionsSchema = z.array(
-	z.object({
-		eventId: z.string(),
-		selected: ValidTeamIdsSchema,
-		spread: z.number().int().positive().nullable()
-	})
-);
 
-type Selections = z.infer<typeof SelectionsSchema>;
-
-function validateSelections(obj: any): asserts obj is Selections {
-	SelectionsSchema.parse(obj);
-}

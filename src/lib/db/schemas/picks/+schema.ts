@@ -4,7 +4,7 @@ import { players } from '../players/+schema';
 import { games, teamIdsEnum } from '../games/schema';
 
 export const picks = pgTable('picks', {
-	id: serial('id').primaryKey(),
+	id: serial('id').notNull().primaryKey(),
 	playerId: integer('player_id')
 		.notNull()
 		.references(() => players.id),

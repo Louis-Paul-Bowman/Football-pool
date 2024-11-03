@@ -4,7 +4,7 @@ import { leagues } from '../leagues/+schema';
 export const players = pgTable(
 	'players',
 	{
-		id: serial('id').primaryKey(),
+		id: serial('id').notNull().primaryKey(),
 		accountUUID: text('account_UUID').notNull(),
 		league: integer('league')
 			.notNull()

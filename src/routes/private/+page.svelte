@@ -5,6 +5,7 @@
 	import { selectable } from '$lib/helpers.js';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
+	import type { Selections } from '$lib/api.js';
 
 	export let data;
 
@@ -20,22 +21,36 @@
 
 	let gameComponents: Record<string, Game> = {};
 
-	
-
 	async function handleSubmit() {
 		let gameIds = seasonData[selectedWeek].games.map((game) => game.id);
-		const selections = gameIds.map((id) => ({
-			eventId: id,
-			selected: gameComponents[id].selected,
-			spread: gameComponents[id].spread
-		}));
-
 		let unselected: string[] = [];
+		let selections: Selections = {};
 
-		selections.forEach((selection) => {
-			if (selection.selected === null) {
-				unselected.push(gameComponents[selection.eventId].name);
+		gameIds.forEach((id) => {
+			let gameComponent = gameComponents[id];
+			if (gameComponent === undefined) {
+				throw new Error(`Couldn't find the component for game ${id}`)
 			}
+			let selected = gameComponent.selected;
+			let spread = gameComponent.spread;
+
+			if (selected === undefined || spread === undefined) {
+				throw new Error(`Couldn't find the selections for game ${id}`)
+			}
+
+			if (selected === null) {
+				unselected.push(gameComponents[id].name);
+				return;
+			}
+			if (selected === '-1' || selected === '-2') {
+				toastStore.trigger({
+					message: "Can't pick placeholder team. Ignoring.",
+					timeout: 3000,
+					background: 'variant-filled-error'
+				});
+				return;
+			}
+			selections[id] = { selected, spread };
 		});
 
 		if (unselected.length > 0) {
@@ -47,11 +62,12 @@
 			return;
 		}
 
-		let resp = await fetch("/private/picks", {method:"post",
-			body:JSON.stringify({leagueId:1, selections})
+		let resp = await fetch('/private/picks', {
+			method: 'post',
+			body: JSON.stringify({ leagueId: 1, selections })
 		});
-		let text = await resp.text()
-		console.log(text)
+		let text = await resp.text();
+		console.log(text);
 	}
 </script>
 
