@@ -1,26 +1,25 @@
 import type { RequestHandler } from './$types';
-import { json } from '@sveltejs/kit';
-import { and, lte, eq, gte } from 'drizzle-orm';
-import { games } from '$lib/db/schemas/games/schema';
-import { db } from '$lib/db/db.server';
-import { fetchScores, type EspnScoreboardResponse, type SeasonTypes } from '$lib/espnApi';
-import { EspnEventtoGame, type FullSeasonData } from '$lib/api';
-import {
-	updateMultipleGames,
-	weeksNeedingUpdate,
-	type GameUpdate,
-	getFullSeasonData,
-	getLiveData
-} from '$lib/db/funcs.server';
-import { chronologicalSort } from '$lib/helpers';
-import { leagues } from '$lib/db/schemas/leagues/+schema';
-import { players } from '$lib/db/schemas/players/+schema';
+import { error, json } from '@sveltejs/kit';
+import { getUserLeaguesData } from '$lib/db/funcs.server';
 
-export const GET: RequestHandler = async () => {
-	let data: any = [];
+export const GET: RequestHandler = async ({ locals: { user } }) => {
+	// let data2: any = {};
+	// Object.keys(data[0].league.weeks).forEach((weekNum) => {
+	// 	data2[weekNum] = [];
+	// });
+	// data[0].games.forEach((game) => {
+	// 	data2[game.week].push(game);
+	// });
 
-	let activePlayers = await db.select().from(players).where(eq(players.league, 1));
-	data = activePlayers;
+	// for (const [week, gamesData] of Object.entries(data2)) {
+	// 	data2[week] = chronologicalSort(gamesData);
+	// }
+	// data[0]['games'] = data2;
+	if (user === null) {
+		return error(403, 'Forbidden');
+	}
 
-	return json(data);
+	let data = await getUserLeaguesData(user);
+
+	return json(data[0]);
 };

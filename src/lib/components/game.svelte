@@ -14,7 +14,7 @@
 	export let game: typeof games.$inferSelect;
 	export let isSpread: boolean;
 	//export this to let the submit event get the selection and to populate selections from db for prior weeks
-	export let selected: TeamIds | null = game.home;
+	export let selected: TeamIds | null = null;
 	export let selectable: boolean = false;
 
 	const homeName = teams[game.home];

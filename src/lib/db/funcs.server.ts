@@ -4,10 +4,13 @@ import { db } from '$lib/db/db.server';
 import { games } from '$lib/db/schemas/games/schema';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { picks } from './schemas/picks/+schema';
+import { players } from './schemas/players/+schema';
+import { leagues } from './schemas/leagues/+schema';
 import { chronologicalSort } from '$lib/helpers';
 import { EspnEventtoGame } from '$lib/api';
 import type { FullSeasonData } from '$lib/api';
-import { and, inArray, eq, sql, SQL } from 'drizzle-orm';
+import { and, inArray, eq, sql, SQL, gte, lte, getTableColumns } from 'drizzle-orm';
+import type { User } from '@supabase/supabase-js';
 
 export async function getFullSeasonData<T extends SeasonTypes>(
 	year: number,
@@ -186,38 +189,37 @@ export interface PickUpdate {
 
 const createPicksCaseStatement = (columnName: keyof PickUpdate, updates: PickUpdate[]) => {
 	const sqlChunks: SQL[] = [sql`(case`];
-  
+
 	for (const update of updates) {
-	  if (update[columnName] !== undefined) {
-		let value: SQL;
-  
-		if (columnName === 'pick') {
-		  value = sql`cast(${update.pick} as "teamIdsEnum")`;
-		} else if (columnName === 'spread') {
-		  if (update.spread === null) {
-			value = sql.raw('NULL');
-		  } else {
-			value = sql`${update.spread}`;
-		  }
-		} else {
-		  throw new Error('Invalid column.');
+		if (update[columnName] !== undefined) {
+			let value: SQL;
+
+			if (columnName === 'pick') {
+				value = sql`cast(${update.pick} as "teamIdsEnum")`;
+			} else if (columnName === 'spread') {
+				if (update.spread === null) {
+					value = sql.raw('NULL');
+				} else {
+					value = sql`${update.spread}`;
+				}
+			} else {
+				throw new Error('Invalid column.');
+			}
+
+			sqlChunks.push(sql`when ${picks.id} = ${update.id} then ${value}`);
 		}
-  
-		sqlChunks.push(sql`when ${picks.id} = ${update.id} then ${value}`);
-	  }
 	}
-  
+
 	sqlChunks.push(sql`end)`);
-  
+
 	const caseStatement = sql.join(sqlChunks, sql.raw(' '));
-  
+
 	if (columnName === 'spread') {
-	  return sql`cast(${caseStatement} as integer)`;
+		return sql`cast(${caseStatement} as integer)`;
 	} else {
-	  return caseStatement;
+		return caseStatement;
 	}
-  };
-  
+};
 
 export async function updateMultiplePicks(
 	updates: PickUpdate[]
@@ -238,4 +240,53 @@ export async function updateMultiplePicks(
 		.where(inArray(picks.id, ids))
 		.returning();
 	return res;
+}
+
+type PlayerLeagueData = {
+	player: { id: (typeof players.$inferSelect)['id']; paid: (typeof players.$inferSelect)['paid'] };
+	league: typeof leagues.$inferSelect;
+	games: (Omit<typeof games.$inferSelect, 'year' | 'seasonType'> & {
+		pick: (typeof picks.$inferSelect)['pick'] | null;
+		spread: (typeof picks.$inferSelect)['spread'] | null;
+	})[];
+	byes: { week: (typeof byes.$inferSelect)['week']; team: (typeof byes.$inferSelect)['team'] }[];
+};
+
+export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]> {
+	let data: PlayerLeagueData[] = [];
+	let now = new Date(Date.now());
+	let { year, seasonType, ...rest } = getTableColumns(games);
+
+	let userActiveLeagues = await db
+		.select({
+			player: { id: players.id, paid: players.paid },
+			league: { ...getTableColumns(leagues) }
+		})
+		.from(players)
+		.where(eq(players.accountUUID, user.id))
+		.innerJoin(
+			leagues,
+			and(eq(players.league, leagues.id), lte(leagues.start, now), gte(leagues.end, now))
+		);
+
+	for await (const league of userActiveLeagues) {
+		data.push({
+			player: league.player,
+			league: league.league,
+			games: await db
+				.select({ ...rest, pick: picks.pick, spread: picks.spread })
+				.from(games)
+				.where(
+					and(eq(games.year, league.league.year), eq(games.seasonType, league.league.seasonType))
+				)
+				.leftJoin(picks, eq(games.id, picks.gameId)),
+			byes: await db
+				.select({ week: byes.week, team: byes.team })
+				.from(byes)
+				.where(
+					and(eq(byes.year, league.league.year), eq(byes.seasonType, league.league.seasonType))
+				)
+		});
+	}
+	return data;
 }
