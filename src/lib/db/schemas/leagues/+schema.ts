@@ -1,5 +1,6 @@
 import type { SeasonTypes, seasonWeeks } from '$lib/espnApi';
-import { pgTable, integer, timestamp, serial, json } from 'drizzle-orm/pg-core';
+import { pgTable, integer, timestamp, serial, json, text } from 'drizzle-orm/pg-core';
+import { games } from '../games/schema';
 
 export type LeagueWeeks = Record<number, { start: Date; end: Date }>;
 
@@ -9,5 +10,6 @@ export const leagues = pgTable('leagues', {
 	seasonType: integer('seasonType').notNull(),
 	start: timestamp('start').notNull(),
 	end: timestamp('end').notNull(),
-	weeks: json('weeks').notNull().$type<LeagueWeeks>()
+	weeks: json('weeks').notNull().$type<LeagueWeeks>(),
+	spreadGames: text('spread_games').array().notNull().default([])
 });

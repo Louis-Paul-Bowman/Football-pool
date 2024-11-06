@@ -27,8 +27,7 @@
 
 	//export this to let the submit event get the name to warn users if they forget to select a team
 	export const name = `${awayName} at ${homeName}`;
-
-	//export this to let the submit event get the spread
+	//export this to let the submit event get the spread	
 	export let spread: number | null = game.spread;
 
 	const formattedStartTime = formatDate(game.date);
@@ -58,7 +57,7 @@
 			class="text-lg font-medium mb-4 text-center block underline"
 			href={game.link}
 			target="_blank"
-			rel="noopener noreferrer">{awayName} at {homeName}</a
+			rel="noopener noreferrer">{name}</a
 		>
 	{:else}
 		<p class="text-lg font-medium mb-4 text-center">{name}</p>

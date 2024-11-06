@@ -16,7 +16,8 @@
 
 	let selectedWeek = currentWeek;
 
-	let spreadGames: TeamIds[] = ['5', '7', '8'];
+	let spreadGames = league.spreadGames;
+
 
 	let gameComponents: Record<string, Game> = {};
 
@@ -90,6 +91,17 @@
 			});
 			return;
 		}
+		//update client-side data
+		for (const [id, update] of Object.entries(selections)) {
+			weeks[selectedWeek].games = weeks[selectedWeek].games.map((game) => {
+				let newGame = game
+				if (game.id === id){
+					newGame.pick = update.selected
+					newGame.spread = update.spread
+				}
+				return newGame
+			})
+		}
 		toastStore.trigger({
 				message: "Success! Picks updated.",
 				timeout: 3000,
@@ -119,7 +131,7 @@
 			<Game
 				bind:this={gameComponents[game.id]}
 				{game}
-				isSpread={spreadGames.includes(game.home)}
+				isSpread={spreadGames.includes(game.id)}
 				selectable={selectable(weeks[selectedWeek].games[0].date)}
 			></Game>
 		{/each}

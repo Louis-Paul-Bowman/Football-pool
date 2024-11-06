@@ -7,6 +7,8 @@ import {
 } from '$lib/espnApi';
 import { getFullSeasonData, getLiveData, getUserLeaguesData } from '$lib/db/funcs.server';
 import { error } from '@sveltejs/kit';
+import { db } from '$lib/db/db.server';
+import { players } from '$lib/db/schemas/players/+schema';
 
 export const load = (async ({ locals: { user } }) => {
 	// let currentYear = 2024;
@@ -23,6 +25,8 @@ export const load = (async ({ locals: { user } }) => {
 
 	if (playerLeaguesData.length === 0) {
 		//register user in league?
+		await db.insert(players).values({ accountUUID: user.id, league: 1, paid: true });
+		playerLeaguesData = await getUserLeaguesData(user);
 	}
 
 	if (playerLeaguesData.length > 1) {

@@ -73,6 +73,11 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 		if (!selectable(weekStart)) {
 			return error(400, `Game ${game.id} can no longer be selected.`);
 		}
+
+		if (spread !== null && !league.spreadGames.includes(game.id)) {
+			return error(400, `Game ${game.id} is not a spread game but a spread was selected.`);
+		}
+
 		if (pick === null) {
 			picksInserts.push({
 				playerId: player.id,
