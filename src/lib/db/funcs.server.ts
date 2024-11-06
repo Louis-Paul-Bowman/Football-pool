@@ -8,7 +8,7 @@ import { players } from './schemas/players/+schema';
 import { leagues } from './schemas/leagues/+schema';
 import { chronologicalSort } from '$lib/helpers';
 import { EspnEventtoGame } from '$lib/api';
-import type { FullSeasonData } from '$lib/api';
+import type { FullSeasonData, PlayerLeagueData } from '$lib/api';
 import { and, inArray, eq, sql, SQL, gte, lte, getTableColumns } from 'drizzle-orm';
 import type { User } from '@supabase/supabase-js';
 
@@ -242,16 +242,6 @@ export async function updateMultiplePicks(
 	return res;
 }
 
-type PlayerLeagueData = {
-	player: { id: (typeof players.$inferSelect)['id']; paid: (typeof players.$inferSelect)['paid'] };
-	league: typeof leagues.$inferSelect;
-	games: (Omit<typeof games.$inferSelect, 'year' | 'seasonType'> & {
-		pick: (typeof picks.$inferSelect)['pick'] | null;
-		spread: (typeof picks.$inferSelect)['spread'] | null;
-	})[];
-	byes: { week: (typeof byes.$inferSelect)['week']; team: (typeof byes.$inferSelect)['team'] }[];
-};
-
 export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]> {
 	let data: PlayerLeagueData[] = [];
 	let now = new Date(Date.now());
@@ -270,22 +260,40 @@ export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]
 		);
 
 	for await (const league of userActiveLeagues) {
+		let gamesData = await db
+			.select({ ...rest, pick: picks.pick, spread: picks.spread })
+			.from(games)
+			.where(
+				and(eq(games.year, league.league.year), eq(games.seasonType, league.league.seasonType))
+			)
+			.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, league.player.id)));
+
+		let byesData = await db
+			.select({ week: byes.week, team: byes.team })
+			.from(byes)
+			.where(and(eq(byes.year, league.league.year), eq(byes.seasonType, league.league.seasonType)));
+
+		let weeks: PlayerLeagueData['weeks'] = {};
+
+		Object.keys(league.league.weeks).forEach((week) => {
+			weeks[Number(week)] = { games: [], byes: [] };
+		});
+
+		gamesData.forEach((game) => {
+			weeks[game.week].games.push(game);
+		});
+		byesData.forEach((bye) => {
+			weeks[bye.week].byes.push(bye.team);
+		});
+
+		Object.keys(weeks).forEach((week) => {
+			weeks[Number(week)].games = chronologicalSort(weeks[Number(week)].games);
+		});
+
 		data.push({
 			player: league.player,
 			league: league.league,
-			games: await db
-				.select({ ...rest, pick: picks.pick, spread: picks.spread })
-				.from(games)
-				.where(
-					and(eq(games.year, league.league.year), eq(games.seasonType, league.league.seasonType))
-				)
-				.leftJoin(picks, eq(games.id, picks.gameId)),
-			byes: await db
-				.select({ week: byes.week, team: byes.team })
-				.from(byes)
-				.where(
-					and(eq(byes.year, league.league.year), eq(byes.seasonType, league.league.seasonType))
-				)
+			weeks: weeks
 		});
 	}
 	return data;

@@ -50,3 +50,7 @@ export function selectable(weekStart: string | Date): boolean {
 	cutoffTime.setHours(cutoffTime.getHours() - 2);
 	return now < cutoffTime;
 }
+
+// export function selectable(weekStart: string | Date): boolean {
+// 	return true;
+// }

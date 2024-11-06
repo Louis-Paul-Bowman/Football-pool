@@ -31,7 +31,6 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 
 	let eventIds: string[] = Object.keys(selections);
 
-	
 	const registered = await db
 		.select()
 		.from(players)
@@ -43,7 +42,7 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 	}
 	const player = registered[0].players;
 	const league = registered[0].leagues;
-	const leagueWeeks = league.weeks
+	const leagueWeeks = league.weeks;
 
 	const gamesData = await db
 		.select()
@@ -57,45 +56,44 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 		)
 		.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, player.id)));
 
-	if (gamesData.length !== eventIds.length){
-		return error(400, `Not all games found. Some games aren't in league ${leagueId}`)
+	if (gamesData.length !== eventIds.length) {
+		return error(400, `Not all games found. Some games aren't in league ${leagueId}`);
 	}
-	
-	let picksInserts: (typeof picks.$inferInsert)[] = []
-	let picksUpdates: PickUpdate[] = []
+
+	let picksInserts: (typeof picks.$inferInsert)[] = [];
+	let picksUpdates: PickUpdate[] = [];
 
 	gamesData.forEach((element) => {
-		let game = element.games
-		let pick = element.picks
-		let weekStart = leagueWeeks[game.week].start
+		let game = element.games;
+		let pick = element.picks;
+		let weekStart = leagueWeeks[game.week].start;
 
-		let {selected, spread} = selections[game.id]
+		let { selected, spread } = selections[game.id];
 
-		if (!selectable(weekStart)){
-			return error(400, `Game ${game.id} can no longer be selected.`)
+		if (!selectable(weekStart)) {
+			return error(400, `Game ${game.id} can no longer be selected.`);
 		}
-		if (pick === null){
-			picksInserts.push({playerId:player.id, league:league.id, gameId:game.id, pick:selected, spread})
+		if (pick === null) {
+			picksInserts.push({
+				playerId: player.id,
+				league: league.id,
+				gameId: game.id,
+				pick: selected,
+				spread
+			});
+		} else {
+			picksUpdates.push({ id: pick.id, pick: selected, spread });
 		}
-		else {
-			picksUpdates.push({id:pick.id, pick:selected, spread})
-		}
-	})
-	console.log("inserts")
-	console.log(picksInserts)
-	console.log("updates")
-	console.log(picksUpdates)
+	});
 
-	let inserted: (typeof picks.$inferInsert)[] = []
-	let updated:  (typeof picks.$inferInsert)[] = []
+	let inserted: (typeof picks.$inferInsert)[] = [];
+	let updated: (typeof picks.$inferInsert)[] = [];
 	if (picksInserts.length > 0) {
 		inserted = await db.insert(picks).values(picksInserts).returning();
 	}
 	if (picksUpdates.length > 0) {
-		updated = await updateMultiplePicks(picksUpdates)
+		updated = await updateMultiplePicks(picksUpdates);
 	}
 
 	return new Response(`Inserted ${inserted.length} picks and updated ${updated.length} picks.`);
 };
-
-

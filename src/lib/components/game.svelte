@@ -10,12 +10,14 @@
 		type ValidTeamIds
 	} from '$lib/espnApi';
 	import { formatDate } from '$lib/helpers';
+	import type { PlayerLeagueData } from '$lib/api';
 	import { CheckIcon, XIcon } from 'lucide-svelte';
-	export let game: typeof games.$inferSelect;
-	export let isSpread: boolean;
+	
+	export let game: PlayerLeagueData["weeks"][number]["games"][number];
 	//export this to let the submit event get the selection and to populate selections from db for prior weeks
-	export let selected: TeamIds | null = null;
+	export let selected: TeamIds | null = game.pick;
 	export let selectable: boolean = false;
+	export let isSpread: boolean;
 
 	const homeName = teams[game.home];
 	const homeLogo = `/img/logos/svg/${game.home}.svg`;
@@ -27,7 +29,7 @@
 	export const name = `${awayName} at ${homeName}`;
 
 	//export this to let the submit event get the spread
-	export let spread: number | null = isSpread ? 1 : null;
+	export let spread: number | null = game.spread;
 
 	const formattedStartTime = formatDate(game.date);
 
@@ -93,7 +95,11 @@
 				<p>{teams[selected]}</p>
 			{/if}
 			<p>By</p>
-			<input bind:value={spread} type="number" min="1" max="100" step="1" class="text-black" />
+			{#if selectable}
+				<input bind:value={spread} type="number" min="1" max="100" step="1" class="text-black" />
+			{:else}
+				<p> {spread}</p>
+			{/if}
 		{/if}
 	</div>
 

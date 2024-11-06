@@ -11,9 +11,8 @@
 
 	const toastStore = getToastStore();
 
-	let { seasonData, currentYear, currentWeek, seasontype } = data;
+	let { league, player, weeks, currentWeek } = data;
 
-	let weeks = seasonWeeks[seasontype];
 
 	let selectedWeek = currentWeek;
 
@@ -22,8 +21,9 @@
 	let gameComponents: Record<string, Game> = {};
 
 	async function handleSubmit() {
-		let gameIds = seasonData[selectedWeek].games.map((game) => game.id);
+		let gameIds = weeks[selectedWeek].games.map((game) => game.id);
 		let unselected: string[] = [];
+		let badSpreads: string[] = [];
 		let selections: Selections = {};
 
 		gameIds.forEach((id) => {
@@ -39,7 +39,7 @@
 			}
 
 			if (selected === null) {
-				unselected.push(gameComponents[id].name);
+				unselected.push(gameComponent.name);
 				return;
 			}
 			if (selected === '-1' || selected === '-2') {
@@ -50,12 +50,28 @@
 				});
 				return;
 			}
+			if (gameComponent.isSpread && spread === null) {
+				badSpreads.push(gameComponent.name)
+				return;
+			}
 			selections[id] = { selected, spread };
 		});
 
-		if (unselected.length > 0) {
+		if (unselected.length > 0 || badSpreads.length > 0) {
+			let errorMsg:string = ""
+			
+			if (unselected.length > 0){
+				errorMsg += `Please select a team for the following games: ${unselected.join(', ')}.`
+			}
+
+			if (badSpreads.length > 0){
+				errorMsg += `Please select a spread for the following games: ${badSpreads.join(', ')}.`
+			}
+
+			errorMsg += "Make sure you scroll to the bottom!"
+
 			toastStore.trigger({
-				message: `Please select a team for the following games: ${unselected.join(', ')}. Make sure you scroll to the bottom!`,
+				message: errorMsg,
 				timeout: 15000,
 				background: 'variant-filled-error'
 			});
@@ -64,20 +80,31 @@
 
 		let resp = await fetch('/private/picks', {
 			method: 'post',
-			body: JSON.stringify({ leagueId: 1, selections })
+			body: JSON.stringify({ leagueId: league.id, selections })
 		});
-		let text = await resp.text();
-		console.log(text);
+		if (!resp.ok){
+			toastStore.trigger({
+				message: await resp.text(),
+				timeout: 15000,
+				background: 'variant-filled-error'
+			});
+			return;
+		}
+		toastStore.trigger({
+				message: "Success! Picks updated.",
+				timeout: 3000,
+				background: 'variant-filled-success'
+			});
 	}
 </script>
 
-{#if seasonData}
+{#if weeks}
 	<div>
 		<TabGroup justify="justify-center">
-			{#each weeks as week}
-				<Tab bind:group={selectedWeek} name="Week {week}" value={week}>Week {week}</Tab>
+			{#each Object.keys(weeks) as week}
+				<Tab bind:group={selectedWeek} name="Week {week}" value={Number(week)}>Week {week}</Tab>
 			{/each}
-			{#if selectable(seasonData[selectedWeek].games[0].date)}
+			{#if selectable(weeks[selectedWeek].games[0].date)}
 				<button
 					on:click={handleSubmit}
 					class="btn w-16 text-center rounded-lg variant-filled-surface">Submit</button
@@ -87,22 +114,22 @@
 	</div>
 
 	<div class="flex flex-wrap gap-x-10 gap-y-4">
-		{#each seasonData[selectedWeek].games as game (game.id)}
+		{#each weeks[selectedWeek].games as game (game.id)}
 			<!-- Make sure events are sorted chronologically -->
 			<Game
 				bind:this={gameComponents[game.id]}
 				{game}
 				isSpread={spreadGames.includes(game.home)}
-				selectable={selectable(seasonData[selectedWeek].games[0].date)}
+				selectable={selectable(weeks[selectedWeek].games[0].date)}
 			></Game>
 		{/each}
-		{#if seasonData[selectedWeek].byes.length > 0}
+		{#if weeks[selectedWeek].byes.length > 0}
 			<div
 				class="max-w-sm mx-auto mt-12 border-black rounded-lg border-dashed border-4 p-4 space-y-2 text-center"
 			>
 				<h1>Bye teams</h1>
 				<div class="grid grid-flow-col grid-rows-2">
-					{#each seasonData[selectedWeek].byes as teamId}
+					{#each weeks[selectedWeek].byes as teamId}
 						<img
 							src={`/img/logos/svg/${teamId}.svg`}
 							alt="{teams[teamId]} logo"

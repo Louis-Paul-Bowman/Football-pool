@@ -5,29 +5,30 @@ import {
 	getEspnFullSeasonData,
 	type SeasonTypes
 } from '$lib/espnApi';
-import { getFullSeasonData, getLiveData } from '$lib/db/funcs.server';
+import { getFullSeasonData, getLiveData, getUserLeaguesData } from '$lib/db/funcs.server';
+import { error } from '@sveltejs/kit';
 
-export const load = (async () => {
-	//No params gives current week
-	// let currentWeekData = await fetchScores();
-
-	// let currentYear = currentWeekData.season.year;
-	// let currentWeek = currentWeekData.week.number;
-	// let seasontype = currentWeekData.season.type;
-	// assertSeasonTypes(seasontype);
-	let currentYear = 2024;
+export const load = (async ({ locals: { user } }) => {
+	// let currentYear = 2024;
 	let currentWeek = 9;
-	let seasontype: SeasonTypes = 2;
-	let maxAgeMins = 5;
+	// let seasontype: SeasonTypes = 2;
+	// let maxAgeMins = 5;
+	// let seasonData = await getLiveData(currentYear, seasontype, currentWeek, maxAgeMins);
 
-	// let now = new Date(Date.now());
-	// let activeLeagues = await db
-	// 	.select()
-	// 	.from(leagues)
-	// 	.where(and(lte(leagues.start, now), gte(leagues.end, now)));
+	if (user === null) {
+		return error(403, 'Forbidden');
+	}
 
-	let seasonData = await getLiveData(currentYear, seasontype, currentWeek, maxAgeMins);
+	let playerLeaguesData = await getUserLeaguesData(user);
 
-	const data = { seasonData, currentYear, currentWeek, seasontype };
-	return data;
+	if (playerLeaguesData.length === 0) {
+		//register user in league?
+	}
+
+	if (playerLeaguesData.length > 1) {
+		return error(500, "Can't currently handle multiple leagues simultaneously.");
+	}
+
+	const data = playerLeaguesData[0];
+	return { ...data, currentWeek };
 }) satisfies PageServerLoad;

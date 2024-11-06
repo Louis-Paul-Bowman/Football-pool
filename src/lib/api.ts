@@ -1,6 +1,10 @@
 import { seasonWeeks, ValidTeamIdsSchema } from './espnApi';
 import type { EspnEvent, SeasonTypes, ValidTeamIds } from './espnApi';
 import { games } from './db/schemas/games/schema';
+import { players } from './db/schemas/players/+schema';
+import { picks } from './db/schemas/picks/+schema';
+import { byes } from './db/schemas/byes/schema';
+import { leagues } from './db/schemas/leagues/+schema';
 import { z } from 'zod';
 export type FullSeasonData<T extends SeasonTypes> = {
 	[K in keyof (typeof seasonWeeks)[T]]: {
@@ -55,3 +59,18 @@ export type Selections = z.infer<typeof SelectionsSchema>;
 export function validateSelections(obj: any): asserts obj is Selections {
 	SelectionsSchema.parse(obj);
 }
+
+export type PlayerLeagueData = {
+	player: { id: (typeof players.$inferSelect)['id']; paid: (typeof players.$inferSelect)['paid'] };
+	league: typeof leagues.$inferSelect;
+	weeks: Record<
+		number,
+		{
+			games: (Omit<typeof games.$inferSelect, 'year' | 'seasonType'> & {
+				pick: (typeof picks.$inferSelect)['pick'] | null;
+				spread: (typeof picks.$inferSelect)['spread'] | null;
+			})[];
+			byes: (typeof byes.$inferSelect)['team'][];
+		}
+	>;
+};
