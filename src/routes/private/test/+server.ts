@@ -1,6 +1,13 @@
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { getUserLeaguesData } from '$lib/db/funcs.server';
+import { weeksNeedingUpdate, getUserLeaguesData, updateLeagueData } from '$lib/db/funcs.server';
+import { db } from '$lib/db/db.server';
+import { players } from '$lib/db/schemas/players/+schema';
+import { and, eq, gte, lte } from 'drizzle-orm';
+import { getCurrentWeek } from '$lib/api';
+import { games } from '$lib/db/schemas/games/schema';
+import { unflattenWeeks } from '$lib/helpers';
+import { leagues } from '$lib/db/schemas/leagues/+schema';
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	// let data2: any = {};
@@ -18,8 +25,9 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	if (user === null) {
 		return error(403, 'Forbidden');
 	}
+	let leagueId = 1;
+	let league = (await db.select().from(leagues).where(eq(leagues.id, leagueId)))[0];
+	let updated = await updateLeagueData(league, 5);
 
-	let data = await getUserLeaguesData(user);
-
-	return json(data[0]);
+	return json(updated);
 };

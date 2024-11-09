@@ -46,7 +46,7 @@ export function chronologicalSort<T extends DatedObject>(games: T[]): T[] {
 
 export function selectable(weekStart: string | Date): boolean {
 	let now = new Date(Date.now());
-	let cutoffTime = typeof weekStart === 'string' ? new Date(weekStart) : weekStart;
+	let cutoffTime = new Date(weekStart);
 	cutoffTime.setHours(cutoffTime.getHours() - 2);
 	return now < cutoffTime;
 }
@@ -54,3 +54,23 @@ export function selectable(weekStart: string | Date): boolean {
 // export function selectable(weekStart: string | Date): boolean {
 // 	return true;
 // }
+
+export function unflattenWeeks<T extends { week: number }>(flat: T[]): Record<number, T[]> {
+	let weeks: number[] = [];
+	let unflattenedWeeks: Record<number, T[]> = {};
+
+	flat.forEach((obj) => {
+		if (!weeks.includes(obj.week)) {
+			weeks.push(obj.week);
+		}
+	});
+	weeks.sort((a, b) => a - b);
+	weeks.forEach((week) => {
+		unflattenedWeeks[week] = [];
+	});
+
+	flat.forEach((obj) => {
+		unflattenedWeeks[obj.week].push(obj);
+	});
+	return unflattenedWeeks;
+}

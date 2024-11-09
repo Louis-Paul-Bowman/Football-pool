@@ -6,12 +6,6 @@ import { picks } from './db/schemas/picks/+schema';
 import { byes } from './db/schemas/byes/schema';
 import { leagues } from './db/schemas/leagues/+schema';
 import { z } from 'zod';
-export type FullSeasonData<T extends SeasonTypes> = {
-	[K in keyof (typeof seasonWeeks)[T]]: {
-		games: (typeof games.$inferSelect)[];
-		byes: ValidTeamIds[];
-	};
-};
 
 export function EspnEventtoGame(event: EspnEvent, week: Number): typeof games.$inferInsert {
 	let url: string | null = null;
@@ -74,3 +68,34 @@ export type PlayerLeagueData = {
 		}
 	>;
 };
+
+export function getCurrentWeek(league: typeof leagues.$inferSelect) {
+	const now = new Date(Date.now());
+	let currentWeek: number | null = null;
+	// For whatever reason comparison work wonky between new Dates and
+	// the ones marshalled from the DB, so re-create them in local time.
+	let leagueStart = new Date(league.start);
+	let leagueEnd = new Date(league.end);
+
+	if (now < leagueStart || now > leagueEnd) {
+		throw new Error('League is not active');
+	}
+
+	for (const [weekNum, weekData] of Object.entries(league.weeks)) {
+		// For whatever reason comparison work wonky between new Dates and
+		// the ones marshalled from the DB, so re-create them in local time.
+		let weekStart = new Date(weekData.start);
+		let weekEnd = new Date(weekData.end);
+		if (now > weekEnd) {
+			continue;
+		}
+		if (now > weekStart) {
+			currentWeek = Number(weekNum);
+			break;
+		}
+	}
+	if (currentWeek === null) {
+		throw new Error('League is not active');
+	}
+	return currentWeek;
+}

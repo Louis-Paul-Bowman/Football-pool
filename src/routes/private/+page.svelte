@@ -1,17 +1,16 @@
 <script lang="ts">
 	// import { onMount } from "svelte";
-	import { teams, seasonWeeks } from '$lib/espnApi';
-	import type { TeamIds } from '$lib/espnApi';
+	import { teams } from '$lib/espnApi';
 	import { selectable } from '$lib/helpers.js';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
-	import type { Selections } from '$lib/api.js';
+	import type {Selections } from '$lib/api.js';
 
 	export let data;
 
 	const toastStore = getToastStore();
 
-	let { league, player, weeks, currentWeek } = data;
+	let { league, weeks, currentWeek} = data;
 
 
 	let selectedWeek = currentWeek;
@@ -108,22 +107,41 @@
 				background: 'variant-filled-success'
 			});
 	}
+
+	async function update() {
+		let resp = await fetch(`/private/updates?leagueId=${league.id}`)
+		if (!resp.ok){
+			toastStore.trigger({
+				message: await resp.text(),
+				timeout: 15000,
+				background: 'variant-filled-error'
+			});
+			return;
+		};
+		({ league, weeks, currentWeek } = await resp.json());
+	}
 </script>
 
 {#if weeks}
 	<div>
 		<TabGroup justify="justify-center">
 			{#each Object.keys(weeks) as week}
-				<Tab bind:group={selectedWeek} name="Week {week}" value={Number(week)}>Week {week}</Tab>
+				<Tab bind:group={selectedWeek} name="{week}" value={Number(week)}>{week}</Tab>
 			{/each}
-			{#if selectable(weeks[selectedWeek].games[0].date)}
-				<button
+			<div>
+				<button on:click={update} class="btn w-16 text-center rounded-lg variant-filled-surface">Update</button>
+				{#if selectable(weeks[selectedWeek].games[0].date)}
+					<button
 					on:click={handleSubmit}
 					class="btn w-16 text-center rounded-lg variant-filled-surface">Submit</button
-				>
-			{/if}
+					>
+				{/if}
+			</div>
+			
 		</TabGroup>
 	</div>
+
+
 
 	<div class="flex flex-wrap gap-x-10 gap-y-4">
 		{#each weeks[selectedWeek].games as game (game.id)}

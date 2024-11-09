@@ -6,33 +6,11 @@ import { byes } from '$lib/db/schemas/byes/schema';
 import { picks } from './schemas/picks/+schema';
 import { players } from './schemas/players/+schema';
 import { leagues } from './schemas/leagues/+schema';
-import { chronologicalSort } from '$lib/helpers';
-import { EspnEventtoGame } from '$lib/api';
-import type { FullSeasonData, PlayerLeagueData } from '$lib/api';
+import { chronologicalSort, unflattenWeeks } from '$lib/helpers';
+import { EspnEventtoGame, getCurrentWeek } from '$lib/api';
+import type { PlayerLeagueData } from '$lib/api';
 import { and, inArray, eq, sql, SQL, gte, lte, getTableColumns } from 'drizzle-orm';
 import type { User } from '@supabase/supabase-js';
-
-export async function getFullSeasonData<T extends SeasonTypes>(
-	year: number,
-	seasonType: T
-): Promise<FullSeasonData<T>> {
-	let weeks = Array.from(seasonWeeks[seasonType]);
-	let gamesData = await db
-		.select()
-		.from(games)
-		.where(and(inArray(games.week, weeks), eq(games.seasonType, seasonType), eq(games.year, year)));
-
-	let byesData = await db
-		.select()
-		.from(byes)
-		.where(and(inArray(byes.week, weeks), eq(byes.seasonType, seasonType), eq(byes.year, year)));
-	let temp: any = {};
-	weeks.forEach((week) => (temp[week] = { games: [], byes: [] }));
-	gamesData.forEach((game) => temp[game.week].games.push(game));
-	weeks.forEach((week) => (temp[week].games = chronologicalSort(temp[week].games)));
-	byesData.forEach((bye) => temp[bye.week].byes.push(bye.team));
-	return temp as FullSeasonData<T>;
-}
 
 export interface GameUpdate {
 	id: typeof games.$inferInsert.id;
@@ -102,15 +80,15 @@ export async function updateMultipleGames(
 	return res;
 }
 
-export function weeksNeedingUpdate<T extends SeasonTypes>(
-	seasonData: FullSeasonData<T>,
+export function weeksNeedingUpdate(
+	gamesData: (typeof games.$inferSelect)[],
 	currentWeek: number,
 	maxAgeMins: number
 ): number[] {
 	let weeksToUpdate: number[] = [];
-	for (const week in seasonData) {
-		const data = seasonData[week];
-		data.games.forEach((game) => {
+	let unflattenedWeeks = unflattenWeeks(gamesData);
+	for (const [week, data] of Object.entries(unflattenedWeeks)) {
+		data.forEach((game) => {
 			let weekNum = Number(week); //shut up typescript
 			if (weeksToUpdate.includes(weekNum)) {
 				return;
@@ -133,13 +111,13 @@ export function weeksNeedingUpdate<T extends SeasonTypes>(
 	return weeksToUpdate;
 }
 
-async function getUpdates(currentYear: number, seasonType: number, weeksToUpdate: number[]) {
+async function getUpdates(league: typeof leagues.$inferSelect, weeksToUpdate: number[]) {
 	let updates: GameUpdate[][] = await Promise.all(
 		weeksToUpdate.map(async (week) => {
 			let weekData: EspnScoreboardResponse;
 
 			//data from ESPN
-			weekData = await fetchScores(String(currentYear), seasonType, week);
+			weekData = await fetchScores(String(league.year), league.seasonType, week);
 
 			return weekData.events.map((event) => {
 				let game = EspnEventtoGame(event, week);
@@ -158,27 +136,23 @@ async function getUpdates(currentYear: number, seasonType: number, weeksToUpdate
 	return updates;
 }
 
-export async function getLiveData(
-	currentYear: number,
-	seasonType: SeasonTypes,
-	currentWeek: number,
-	maxAgeMins: number
-) {
-	//(Possibly out of date) data from DB
-	let data = await getFullSeasonData(currentYear, seasonType);
-
+export async function updateLeagueData(league: typeof leagues.$inferSelect, maxAgeMins: number) {
+	let gamesData = await db
+		.select()
+		.from(games)
+		.where(and(gte(games.date, league.start), lte(games.date, league.end)));
+	let currentWeek = getCurrentWeek(league);
+	if (currentWeek === null) {
+		throw new Error('Not an active league');
+	}
 	//Figure out what DB data needs to be updated in the DB
-	let weeksToUpdate = weeksNeedingUpdate(data, currentWeek, maxAgeMins);
+	let weeksToUpdate = weeksNeedingUpdate(gamesData, currentWeek, maxAgeMins);
 
 	//Apply updates to DB
-	let updates = await getUpdates(currentYear, seasonType, weeksToUpdate);
+	let updates = await getUpdates(league, weeksToUpdate);
 	let affected = await updateMultipleGames(updates.flat());
-
-	//Avoid a new DB call by updating in place from update return
-	weeksToUpdate.forEach((week) => (data[week].games = []));
-	affected.forEach((game) => data[game.week].games.push(game));
-	weeksToUpdate.forEach((week) => (data[week].games = chronologicalSort(data[week].games)));
-	return data;
+	console.log('Updated', affected.length, 'games');
+	return affected;
 }
 
 export interface PickUpdate {
@@ -242,7 +216,10 @@ export async function updateMultiplePicks(
 	return res;
 }
 
-export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]> {
+export async function getUserLeaguesData(
+	user: User,
+	maxAgeMins: number
+): Promise<PlayerLeagueData[]> {
 	let data: PlayerLeagueData[] = [];
 	let now = new Date(Date.now());
 	let { year, seasonType, ...rest } = getTableColumns(games);
@@ -259,23 +236,22 @@ export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]
 			and(eq(players.league, leagues.id), lte(leagues.start, now), gte(leagues.end, now))
 		);
 
-	for await (const league of userActiveLeagues) {
+	for await (const { player, league } of userActiveLeagues) {
+		await updateLeagueData(league, maxAgeMins);
 		let gamesData = await db
 			.select({ ...rest, pick: picks.pick, spread: picks.spread })
 			.from(games)
-			.where(
-				and(eq(games.year, league.league.year), eq(games.seasonType, league.league.seasonType))
-			)
-			.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, league.player.id)));
+			.where(and(eq(games.year, league.year), eq(games.seasonType, league.seasonType)))
+			.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, player.id)));
 
 		let byesData = await db
 			.select({ week: byes.week, team: byes.team })
 			.from(byes)
-			.where(and(eq(byes.year, league.league.year), eq(byes.seasonType, league.league.seasonType)));
+			.where(and(eq(byes.year, league.year), eq(byes.seasonType, league.seasonType)));
 
 		let weeks: PlayerLeagueData['weeks'] = {};
 
-		Object.keys(league.league.weeks).forEach((week) => {
+		Object.keys(league.weeks).forEach((week) => {
 			weeks[Number(week)] = { games: [], byes: [] };
 		});
 
@@ -291,9 +267,9 @@ export async function getUserLeaguesData(user: User): Promise<PlayerLeagueData[]
 		});
 
 		data.push({
-			player: league.player,
-			league: league.league,
-			weeks: weeks
+			player,
+			league,
+			weeks
 		});
 	}
 	return data;

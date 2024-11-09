@@ -1,6 +1,4 @@
-import type { SeasonTypes, seasonWeeks } from '$lib/espnApi';
 import { pgTable, integer, timestamp, serial, json, text } from 'drizzle-orm/pg-core';
-import { games } from '../games/schema';
 
 export type LeagueWeeks = Record<number, { start: Date; end: Date }>;
 

@@ -62,6 +62,7 @@
 	{:else}
 		<p class="text-lg font-medium mb-4 text-center">{name}</p>
 	{/if}
+	<!-- <p>Updated {game.updated}</p> -->
 
 	<p>{formattedStartTime}</p>
 	<div class="flex space-x-4 items-center justify-center text-center">
