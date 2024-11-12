@@ -64,7 +64,7 @@
 	{/if}
 	<!-- <p>Updated {game.updated}</p> -->
 
-	<p>{formattedStartTime}</p>
+	<p class="text-center">{formattedStartTime}</p>
 	<div class="flex space-x-4 items-center justify-center text-center">
 		<div>
 			{#if selectable}

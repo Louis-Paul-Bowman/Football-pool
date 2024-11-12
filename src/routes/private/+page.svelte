@@ -129,10 +129,10 @@
 				<Tab bind:group={selectedWeek} name="{week}" value={Number(week)}>{week}</Tab>
 			{/each}
 			<div>
-				<button on:click={update} class="btn w-16 text-center rounded-lg variant-filled-surface">Update</button>
+				<button on:click={async () => await update()} class="btn w-16 text-center rounded-lg variant-filled-surface">Update</button>
 				{#if selectable(weeks[selectedWeek].games[0].date)}
 					<button
-					on:click={handleSubmit}
+					on:click={async () => await handleSubmit()}
 					class="btn w-16 text-center rounded-lg variant-filled-surface">Submit</button
 					>
 				{/if}

@@ -1,4 +1,6 @@
-export function formatDate(date: Date): string {
+export function formatDate(d: Date): string {
+	// Drizzle dates are being fucky, wrap in a new Date before using
+	let date = new Date(d);
 	const weekday = date.toLocaleString('en-US', { weekday: 'long' });
 	const month = date.toLocaleString('en-US', { month: 'short' });
 	const dayOfMonth = date.getDate();
@@ -10,6 +12,7 @@ export function formatDate(date: Date): string {
 
 	// return `${weekday} ${month} ${dayOfMonth}${ordinalSuffix}, ${time} ${timeZone}`;
 	return `${weekday} ${month} ${dayOfMonth}${ordinalSuffix}, ${time}`;
+	// return `${weekday} ${time}`;
 }
 
 function getOrdinalSuffix(day: number): string {
@@ -32,9 +35,10 @@ interface DatedObject {
 }
 
 export function chronologicalSort<T extends DatedObject>(games: T[]): T[] {
+	// Drizzle dates are being fucky, wrap in a new Date before using
 	return [...games].sort((a, b) => {
-		const dateA = typeof a.date === 'string' ? new Date(a.date) : a.date;
-		const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
+		const dateA = new Date(a.date);
+		const dateB = new Date(b.date);
 
 		if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
 			throw new Error('Invalid date format');
@@ -45,6 +49,7 @@ export function chronologicalSort<T extends DatedObject>(games: T[]): T[] {
 }
 
 export function selectable(weekStart: string | Date): boolean {
+	// Drizzle dates are being fucky, wrap in a new Date before using
 	let now = new Date(Date.now());
 	let cutoffTime = new Date(weekStart);
 	cutoffTime.setHours(cutoffTime.getHours() - 2);
