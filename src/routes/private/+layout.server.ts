@@ -22,7 +22,7 @@ export const load = (async ({ locals: { user } }) => {
 
 	if (playerLeaguesData.length === 0) {
 		//register user in league?
-		await db.insert(players).values({ accountUUID: user.id, league: 1, paid: true });
+		await db.insert(players).values({ accountUUID: user.id, name:user.user_metadata.display_name, league: 1, paid: true });
 		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
 	}
 

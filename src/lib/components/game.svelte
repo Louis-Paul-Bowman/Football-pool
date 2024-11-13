@@ -12,8 +12,8 @@
 	import { formatDate } from '$lib/helpers';
 	import type { PlayerLeagueData } from '$lib/api';
 	import { CheckIcon, XIcon } from 'lucide-svelte';
-	
-	export let game: PlayerLeagueData["weeks"][number]["games"][number];
+
+	export let game: PlayerLeagueData['weeks'][number]['games'][number];
 	//export this to let the submit event get the selection and to populate selections from db for prior weeks
 	export let selected: TeamIds | null = game.pick;
 	export let selectable: boolean = false;
@@ -27,7 +27,7 @@
 
 	//export this to let the submit event get the name to warn users if they forget to select a team
 	export const name = `${awayName} at ${homeName}`;
-	//export this to let the submit event get the spread	
+	//export this to let the submit event get the spread
 	export let spread: number | null = game.spread;
 
 	const formattedStartTime = formatDate(game.date);
@@ -98,7 +98,7 @@
 			{#if selectable}
 				<input bind:value={spread} type="number" min="1" max="100" step="1" class="text-black" />
 			{:else}
-				<p> {spread}</p>
+				<p>{spread}</p>
 			{/if}
 		{/if}
 	</div>
