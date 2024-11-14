@@ -41,9 +41,17 @@
 <AppShell scrollbarGutter="stable">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar>
+		<AppBar class="px-4 py-2">
 			<svelte:fragment slot="lead">
 				<strong class="text-xl uppercase">Football</strong>
+			</svelte:fragment>
+			<svelte:fragment>
+				<div class="flex-grow flex items-center justify-center">
+					<div class="flex items-center justify-center gap-x-8">
+						<a href="/private">Picks</a>
+						<a href="/private/scoreboard">Scoreboard</a>
+					</div>
+				</div>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				{#if data.user !== null}

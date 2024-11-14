@@ -166,20 +166,36 @@
 						{#each weeks[selectedWeek].games as game (game.id)}
 							<!-- <td>{gamePicks[game.id].find((pick) => pick.playerId === player.id)?.pick}</td> -->
 							<td>
-                                <div class="flex items-center justify-center">
-                                    {#if playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] === 0}
-                                        <XIcon size={24} color="red" />
-                                        {#if league.spreadGames.includes(game.id)}
-                                            <span class="ml-1">(+0)</span>
-                                        {/if}
-                                    {:else}
-                                        <CheckIcon size={24} color="green" />
-                                        {#if league.spreadGames.includes(game.id)}
-                                            <span class="ml-1">(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] - 1})</span>
-                                        {/if}
-                                    {/if}
-                                </div>
-                            </td>
+								<div class="flex flex-col items-center justify-center space-y-1">
+									<div class="flex items-center justify-center">
+										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].pick !== undefined}
+											<img src="/img/logos/svg/{gamePicks[game.id][player.id].pick}.svg" alt="{teams[gamePicks[game.id][player.id].pick]} logo" class="w-5 h-5 mr-1">
+										{/if}
+							
+										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].spread }
+											<p class="text-sm">({gamePicks[game.id][player.id].spread})</p>
+										{/if}
+									</div>
+									
+									{#if game.active || game.final}
+										<div class="flex items-center justify-center">
+											{#if playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] === 0}
+												<XIcon size={24} color="red" />
+												{#if league.spreadGames.includes(game.id)}
+													<span class="ml-1 text-xs">(+0)</span>
+												{/if}
+											{:else}
+												<CheckIcon size={24} color="green" />
+												{#if league.spreadGames.includes(game.id)}
+													<span class="ml-1 text-xs">(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] - 1})</span>
+												{/if}
+											{/if}
+										</div>
+									{/if}
+									
+								</div>
+							</td>
+							
                             
 						{/each}
 						<td>{playersWeeklyScores[player.id][selectedWeek].week}</td>

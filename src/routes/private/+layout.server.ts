@@ -5,11 +5,12 @@
  **/
 
 import type { LayoutServerLoad } from './$types';
-import { getUserLeaguesData } from '$lib/db/funcs.server';
+import { getUserLeaguesData, getGamePicks } from '$lib/db/funcs.server';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/+schema';
 import { getCurrentWeek } from '$lib/api';
+import { eq } from 'drizzle-orm';
 
 export const load = (async ({ locals: { user } }) => {
 	const maxAgeMins = 5;
@@ -22,7 +23,14 @@ export const load = (async ({ locals: { user } }) => {
 
 	if (playerLeaguesData.length === 0) {
 		//register user in league?
-		await db.insert(players).values({ accountUUID: user.id, name:user.user_metadata.display_name, league: 1, paid: true });
+		await db
+			.insert(players)
+			.values({
+				accountUUID: user.id,
+				name: user.user_metadata.display_name,
+				league: 1,
+				paid: true
+			});
 		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
 	}
 
@@ -30,6 +38,19 @@ export const load = (async ({ locals: { user } }) => {
 		return error(500, "Can't currently handle multiple leagues simultaneously.");
 	}
 
-	const data = playerLeaguesData[0];
-	return { ...data, currentWeek: getCurrentWeek(data.league) };
+	const playerLeagueData = playerLeaguesData[0];
+
+	let leaguePlayers = await db
+		.select({ id: players.id, name: players.name })
+		.from(players)
+		.where(eq(players.league, playerLeagueData.league.id));
+
+	let gamePicks = await getGamePicks(playerLeagueData.league, playerLeagueData.weeks);
+
+	return {
+		...playerLeagueData,
+		currentWeek: getCurrentWeek(playerLeagueData.league),
+		leaguePlayers,
+		gamePicks
+	};
 }) satisfies LayoutServerLoad;
