@@ -1,7 +1,10 @@
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { getUserLeaguesData } from '$lib/db/funcs.server';
-import { getCurrentWeek, type PlayerLeagueData } from '$lib/api';
+import { getUserLeaguesData, getGamePicks } from '$lib/db/funcs.server';
+import { getCurrentWeek } from '$lib/api';
+import { db } from '$lib/db/db.server';
+import { players } from '$lib/db/schemas/players/+schema';
+import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 	const maxAgeMins = 5;
@@ -18,13 +21,25 @@ export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 	}
 
 	const playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
-	const data = playerLeaguesData.find(
+	const playerLeagueData = playerLeaguesData.find(
 		(playerLeagueData) => playerLeagueData.league.id === leagueId
 	);
 
-	if (!data) {
+	if (!playerLeagueData) {
 		return error(400, `User is not registered in league with id ${leagueId}.`);
 	}
 
-	return json({ ...data, currentWeek: getCurrentWeek(data.league) });
+	let leaguePlayers = await db
+		.select({ id: players.id, name: players.name })
+		.from(players)
+		.where(eq(players.league, playerLeagueData.league.id));
+
+	let gamePicks = await getGamePicks(playerLeagueData.league, playerLeagueData.weeks);
+
+	return json({
+		...playerLeagueData,
+		currentWeek: getCurrentWeek(playerLeagueData.league),
+		leaguePlayers,
+		gamePicks
+	});
 };

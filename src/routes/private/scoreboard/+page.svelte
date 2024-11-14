@@ -1,19 +1,24 @@
 <script lang="ts">
-	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
+	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
 	import { selectable } from '$lib/helpers.js';
     import { CheckIcon, XIcon } from 'lucide-svelte';
 
 	export let data;
+
+	const toastStore = getToastStore();
+
 	let { gamePicks, weeks, currentWeek, leaguePlayers, league } = data;
 	let selectedWeek: number = currentWeek;
-	const displayableWeeks: typeof weeks = {};
+	let displayableWeeks: typeof weeks = {};
 	for (const [weekNum, weekData] of Object.entries(weeks)) {
 		if (!selectable(weekData.games[0].date)) {
 			displayableWeeks[Number(weekNum)] = weekData;
 			selectedWeek = Number(weekNum);
 		}
 	}
+	let playersWeeklyScores = scorePlayers();
+	
 
 	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
 		let winner =
@@ -30,8 +35,6 @@
 		string,
 		Record<number, { gamesScores: Record<string, number>; week: number; cumulative: number }>
 	>;
-
-	let playersWeeklyScores = scorePlayers();
 
 	function scorePlayers() {
 		let playersWeeklyScores: PlayersWeeklyScores = {};
@@ -101,7 +104,25 @@
 		return 0;
 	}
 
-	async function update() {}
+	async function update() {
+		let resp = await fetch(`/private/updates?leagueId=${league.id}`);
+		if (!resp.ok) {
+			toastStore.trigger({
+				message: await resp.text(),
+				timeout: 15000,
+				background: 'variant-filled-error'
+			});
+			return;
+		}
+		({ gamePicks, weeks, currentWeek, leaguePlayers, league } = await resp.json());
+		displayableWeeks = {}
+		for (const [weekNum, weekData] of Object.entries(weeks)) {
+			if (!selectable(weekData.games[0].date)) {
+				displayableWeeks[Number(weekNum)] = weekData;
+			}
+		}
+		playersWeeklyScores = scorePlayers();
+	}
 </script>
 
 {#if weeks}

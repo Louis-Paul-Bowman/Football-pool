@@ -99,3 +99,8 @@ export function getCurrentWeek(league: typeof leagues.$inferSelect) {
 	}
 	return currentWeek;
 }
+
+export type GamePicks = Record<
+	typeof games.$inferSelect.id,
+	Record<typeof picks.$inferSelect.playerId, Pick<typeof picks.$inferSelect, 'pick' | 'spread'>>
+>;

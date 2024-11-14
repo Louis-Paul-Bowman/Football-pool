@@ -6,9 +6,9 @@ import { byes } from '$lib/db/schemas/byes/schema';
 import { picks } from './schemas/picks/+schema';
 import { players } from './schemas/players/+schema';
 import { leagues } from './schemas/leagues/+schema';
-import { chronologicalSort, unflattenWeeks } from '$lib/helpers';
+import { chronologicalSort, unflattenWeeks, selectable } from '$lib/helpers';
 import { EspnEventtoGame, getCurrentWeek } from '$lib/api';
-import type { PlayerLeagueData } from '$lib/api';
+import type { PlayerLeagueData, GamePicks } from '$lib/api';
 import { and, inArray, eq, sql, SQL, gte, lte, getTableColumns } from 'drizzle-orm';
 import type { User } from '@supabase/supabase-js';
 
@@ -273,4 +273,33 @@ export async function getUserLeaguesData(
 		});
 	}
 	return data;
+}
+
+export async function getGamePicks(
+	league: typeof leagues.$inferSelect,
+	weeks: PlayerLeagueData['weeks']
+) {
+	let gamePicks: GamePicks = {};
+
+	let leaguePicks = await db.select().from(picks).where(eq(picks.league, league.id));
+
+	for (const [weekNum, weekData] of Object.entries(weeks)) {
+		if (selectable(weekData.games[0].date)) {
+			continue;
+		}
+
+		weekData.games.forEach((game) => {
+			gamePicks[game.id] = {};
+		});
+	}
+
+	leaguePicks.forEach((pick) => {
+		if (gamePicks[pick.gameId] !== undefined) {
+			gamePicks[pick.gameId][pick.playerId] = {
+				pick: pick.pick,
+				spread: pick.spread
+			};
+		}
+	});
+	return gamePicks;
 }
