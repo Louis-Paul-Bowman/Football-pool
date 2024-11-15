@@ -46,6 +46,7 @@
 		"@floating-ui/dom": "1.6.11",
 		"@supabase/ssr": "^0.5.1",
 		"@supabase/supabase-js": "^2.45.6",
+		"@sveltejs/adapter-vercel": "^5.4.7",
 		"dotenv": "^16.4.5",
 		"drizzle-orm": "^0.35.3",
 		"lucide-svelte": "^0.453.0",
