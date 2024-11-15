@@ -13,6 +13,7 @@
 	let { league, weeks, currentWeek } = data;
 
 	let selectedWeek = currentWeek;
+	let maxWeek = Math.min(currentWeek + 1, Math.max(...Object.keys(weeks).map(Number)));
 
 	let spreadGames = league.spreadGames;
 
@@ -118,13 +119,14 @@
 		}
 		({ league, weeks, currentWeek } = await resp.json());
 	}
+	$: maxWeek = Math.min(currentWeek + 1, Math.max(...Object.keys(weeks).map(Number)));
 </script>
 
 {#if weeks}
 	<div>
 		<TabGroup justify="justify-center">
-			{#each Object.keys(weeks) as week}
-				<Tab bind:group={selectedWeek} name={week} value={Number(week)}>{week}</Tab>
+			{#each Array.from({ length: maxWeek }, (_, i) => i + 1) as week}
+				<Tab bind:group={selectedWeek} name={`Week ${week}`} value={week}>{week}</Tab>
 			{/each}
 			<div>
 				<button

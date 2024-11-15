@@ -46,12 +46,14 @@
 				<strong class="text-xl uppercase">Football</strong>
 			</svelte:fragment>
 			<svelte:fragment>
-				<div class="flex-grow flex items-center justify-center">
-					<div class="flex items-center justify-center gap-x-8">
-						<a href="/private">Picks</a>
-						<a href="/private/scoreboard">Scoreboard</a>
+				{#if data.user !== null}
+					<div class="flex-grow flex items-center justify-center">
+						<div class="flex items-center justify-center gap-x-8">
+							<a href="/private">Picks</a>
+							<a href="/private/scoreboard">Scoreboard</a>
+						</div>
 					</div>
-				</div>
+				{/if}
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				{#if data.user !== null}

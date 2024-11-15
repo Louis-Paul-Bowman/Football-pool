@@ -2,7 +2,7 @@
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
 	import { selectable } from '$lib/helpers.js';
-    import { CheckIcon, XIcon } from 'lucide-svelte';
+	import { CheckIcon, XIcon } from 'lucide-svelte';
 
 	export let data;
 
@@ -18,7 +18,6 @@
 		}
 	}
 	let playersWeeklyScores = scorePlayers();
-	
 
 	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
 		let winner =
@@ -115,7 +114,7 @@
 			return;
 		}
 		({ gamePicks, weeks, currentWeek, leaguePlayers, league } = await resp.json());
-		displayableWeeks = {}
+		displayableWeeks = {};
 		for (const [weekNum, weekData] of Object.entries(weeks)) {
 			if (!selectable(weekData.games[0].date)) {
 				displayableWeeks[Number(weekNum)] = weekData;
@@ -147,13 +146,21 @@
 					<th></th>
 					{#each weeks[selectedWeek].games as game (game.id)}
 						<!-- <th>{getTitle(game)}</th> -->
-                        <th>
-                            <div class="grid grid-rows-3 items-center justify-center text-center">
-                                <img src="/img/logos/svg/{game.away}.svg" alt="{teams[game.away]} logo" class="w-10 h-10">
-                                <p>at</p>
-                                <img src="/img/logos/svg/{game.home}.svg" alt="{teams[game.home]} logo" class="w-10 h-10">
-                            </div>
-                        </th>
+						<th>
+							<div class="grid grid-rows-3 items-center justify-center text-center">
+								<img
+									src="/img/logos/svg/{game.away}.svg"
+									alt="{teams[game.away]} logo"
+									class="w-10 h-10"
+								/>
+								<p>at</p>
+								<img
+									src="/img/logos/svg/{game.home}.svg"
+									alt="{teams[game.home]} logo"
+									class="w-10 h-10"
+								/>
+							</div>
+						</th>
 					{/each}
 					<th class="text-center">Week</th>
 					<th class="text-center">Total</th>
@@ -161,11 +168,11 @@
 			</thead>
 			<tbody>
 				<tr>
-					<th></th>
+					<th class="text-center">Result</th>
 					{#each weeks[selectedWeek].games as game (game.id)}
 						<th>
 							<div>
-								{#if game.active && !game.final}
+								<!-- {#if game.active && !game.final}
 									{#if game.homeScore > game.awayScore}
 										<p>Leading:</p>
 										<div class="flex items-center justify-center">
@@ -180,29 +187,49 @@
 										</div>
 									{:else}
 										<p>Tied.</p>
-									{/if}
-								{:else if game.final}
+									{/if} -->
+								{#if game.active || game.final}
 									{#if game.homeScore > game.awayScore}
-										<p>Winner:</p>
+										<!-- <p>Winner:</p> -->
 										<div class="flex items-center justify-center">
-											<img src="/img/logos/svg/{game.home}.svg" alt="{teams[game.home]} logo" class="w-10 h-10">
-											{#if league.spreadGames.includes(game.id)}
-												<p>({game.homeScore - game.awayScore})</p>
-											{/if}
+											<img
+												src="/img/logos/svg/{game.home}.svg"
+												alt="{teams[game.home]} logo"
+												class="w-10 h-10"
+											/>
 										</div>
+										{#if game.active}
+											<p>Leading (+{game.homeScore - game.awayScore})</p>
+										{:else}
+											<p>
+												Final {league.spreadGames.includes(game.id)
+													? `(+${game.homeScore - game.awayScore})`
+													: ''}
+											</p>
+										{/if}
 									{:else if game.awayScore > game.homeScore}
-										<p>Winner:</p>
+										<!-- <p>Winner:</p> -->
 										<div class="flex items-center justify-center">
-											<img src="/img/logos/svg/{game.away}.svg" alt="{teams[game.away]} logo" class="w-10 h-10">
-											{#if league.spreadGames.includes(game.id)}
-												<p>({game.awayScore - game.homeScore})</p>
-											{/if}
+											<img
+												src="/img/logos/svg/{game.away}.svg"
+												alt="{teams[game.away]} logo"
+												class="w-10 h-10"
+											/>
 										</div>
+										{#if game.active}
+											<p>Leading (+{game.awayScore - game.homeScore})</p>
+										{:else}
+											<p>
+												Final {league.spreadGames.includes(game.id)
+													? `(+${game.awayScore - game.homeScore})`
+													: ''}
+											</p>
+										{/if}
 									{:else}
 										<p>Tied.</p>
 									{/if}
 								{:else}
-									<p>Not started.</p>
+									<p></p>
 								{/if}
 							</div>
 						</th>
@@ -219,14 +246,18 @@
 								<div class="flex flex-col items-center justify-center space-y-1">
 									<div class="flex items-center justify-center">
 										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].pick !== undefined}
-											<img src="/img/logos/svg/{gamePicks[game.id][player.id].pick}.svg" alt="{teams[gamePicks[game.id][player.id].pick]} logo" class="w-5 h-5 mr-1">
+											<img
+												src="/img/logos/svg/{gamePicks[game.id][player.id].pick}.svg"
+												alt="{teams[gamePicks[game.id][player.id].pick]} logo"
+												class="w-8 h-8 mr-1"
+											/>
 										{/if}
-							
-										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].spread }
+
+										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].spread}
 											<p class="text-sm">({gamePicks[game.id][player.id].spread})</p>
 										{/if}
 									</div>
-									
+
 									{#if game.active || game.final}
 										<div class="flex items-center justify-center">
 											{#if playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] === 0}
@@ -237,16 +268,16 @@
 											{:else}
 												<CheckIcon size={24} color="green" />
 												{#if league.spreadGames.includes(game.id)}
-													<span class="ml-1 text-xs">(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] - 1})</span>
+													<span class="ml-1 text-xs"
+														>(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] -
+															1})</span
+													>
 												{/if}
 											{/if}
 										</div>
 									{/if}
-									
 								</div>
 							</td>
-							
-                            
 						{/each}
 						<td>{playersWeeklyScores[player.id][selectedWeek].week}</td>
 						<td>{playersWeeklyScores[player.id][selectedWeek].cumulative}</td>

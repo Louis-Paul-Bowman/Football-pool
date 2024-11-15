@@ -7,7 +7,7 @@ import { players } from '$lib/db/schemas/players/+schema';
 import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url, locals: { user } }) => {
-	const maxAgeMins = 5;
+	const maxAgeMins = 0.5;
 	let leagueId: number | string | null = url.searchParams.get('leagueId');
 
 	if (leagueId === null) {
