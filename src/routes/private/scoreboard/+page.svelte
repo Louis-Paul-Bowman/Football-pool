@@ -155,11 +155,61 @@
                             </div>
                         </th>
 					{/each}
-					<th>Week</th>
-					<th>Total</th>
+					<th class="text-center">Week</th>
+					<th class="text-center">Total</th>
 				</tr>
 			</thead>
 			<tbody>
+				<tr>
+					<th></th>
+					{#each weeks[selectedWeek].games as game (game.id)}
+						<th>
+							<div>
+								{#if game.active && !game.final}
+									{#if game.homeScore > game.awayScore}
+										<p>Leading:</p>
+										<div class="flex items-center justify-center">
+											<img src="/img/logos/svg/{game.home}.svg" alt="{teams[game.home]} logo" class="w-10 h-10">
+											<p>({game.homeScore - game.awayScore})</p>
+										</div>
+									{:else if game.awayScore > game.homeScore}
+										<p>Leading:</p>
+										<div class="flex items-center justify-center">
+											<img src="/img/logos/svg/{game.away}.svg" alt="{teams[game.away]} logo" class="w-10 h-10">
+											<p>({game.awayScore - game.homeScore})</p>
+										</div>
+									{:else}
+										<p>Tied.</p>
+									{/if}
+								{:else if game.final}
+									{#if game.homeScore > game.awayScore}
+										<p>Winner:</p>
+										<div class="flex items-center justify-center">
+											<img src="/img/logos/svg/{game.home}.svg" alt="{teams[game.home]} logo" class="w-10 h-10">
+											{#if league.spreadGames.includes(game.id)}
+												<p>({game.homeScore - game.awayScore})</p>
+											{/if}
+										</div>
+									{:else if game.awayScore > game.homeScore}
+										<p>Winner:</p>
+										<div class="flex items-center justify-center">
+											<img src="/img/logos/svg/{game.away}.svg" alt="{teams[game.away]} logo" class="w-10 h-10">
+											{#if league.spreadGames.includes(game.id)}
+												<p>({game.awayScore - game.homeScore})</p>
+											{/if}
+										</div>
+									{:else}
+										<p>Tied.</p>
+									{/if}
+								{:else}
+									<p>Not started.</p>
+								{/if}
+							</div>
+						</th>
+					{/each}
+					<th></th>
+					<th></th>
+				</tr>
 				{#each leaguePlayers as player}
 					<tr>
 						<th>{player.name}</th>
