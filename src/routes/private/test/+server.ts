@@ -8,26 +8,90 @@ import { getCurrentWeek } from '$lib/api';
 import { games } from '$lib/db/schemas/games/schema';
 import { unflattenWeeks } from '$lib/helpers';
 import { leagues } from '$lib/db/schemas/leagues/+schema';
+import { picks } from '$lib/db/schemas/picks/+schema';
+import { teams } from '$lib/espnApi';
+
+const team2id = {
+	Falcons: '1',
+	Bills: '2',
+	Bears: '3',
+	Bengals: '4',
+	Browns: '5',
+	Cowboys: '6',
+	Broncos: '7',
+	Lions: '8',
+	Packers: '9',
+	Titans: '10',
+	Colts: '11',
+	Chiefs: '12',
+	Raiders: '13',
+	Rams: '14',
+	Dolphins: '15',
+	Vikings: '16',
+	Patriots: '17',
+	Saints: '18',
+	Giants: '19',
+	Jets: '20',
+	Eagles: '21',
+	Cardinals: '22',
+	Steelers: '23',
+	Chargers: '24',
+	'49ers': '25',
+	Seahawks: '26',
+	Buccaneers: '27',
+	Commanders: '28',
+	Panthers: '29',
+	Jaguars: '30',
+	Ravens: '33',
+	Texans: '34'
+} as const;
+
+async function makePicks(
+	p: {p: keyof typeof team2id; s?: number }[],
+	playerId: number,
+	league: number,
+	week:number
+) {
+	let res: (typeof picks.$inferInsert)[] = [];
+
+	let weekGames = await db.select().from(games).where(eq(games.week, week))
+
+	p.forEach((pick) => {
+		let game = weekGames.find((game) => [game.home, game.away].includes(team2id[pick.p]))
+		
+		if (game === undefined){
+			throw new Error("No such game.")
+		}
+		
+		let gameId = game.id
+		res.push({league, playerId, gameId, pick:team2id[pick.p], spread:pick.s ?? null})
+	});
+	return res
+}
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
-	// let data2: any = {};
-	// Object.keys(data[0].league.weeks).forEach((weekNum) => {
-	// 	data2[weekNum] = [];
-	// });
-	// data[0].games.forEach((game) => {
-	// 	data2[game.week].push(game);
-	// });
+	let p: { p: keyof typeof team2id; s?: number }[] = [
+		{p:"Eagles"},
+		{p:"Packers"},
+		{p:"Lions", s:17},
+		{p:"Dolphins"},
+		{p:"Rams"},
+		{p:"Saints"},
+		{p:"Ravens"},
+		{p:"Vikings", s:10},
+		{p:"Jets"},
+		{p:"49ers"},
+		{p:"Broncos"},
+		{p:"Bills", s:3},
+		{p:"Bengals"},
+		{p:"Texans"},
+	];
+	let playerId = 10
+	let league = 1
+	let week = 11
+	let data = await makePicks(p, playerId, league, week);
 
-	// for (const [week, gamesData] of Object.entries(data2)) {
-	// 	data2[week] = chronologicalSort(gamesData);
-	// }
-	// data[0]['games'] = data2;
-	if (user === null) {
-		return error(403, 'Forbidden');
-	}
-	let leagueId = 1;
-	let league = (await db.select().from(leagues).where(eq(leagues.id, leagueId)))[0];
-	let updated = await updateLeagueData(league, 5);
+	// await db.insert(picks).values(data)
 
-	return json(updated);
+	return json(data);
 };
