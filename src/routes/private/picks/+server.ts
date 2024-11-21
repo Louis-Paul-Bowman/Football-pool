@@ -6,7 +6,7 @@ import { eq, and, lte, inArray } from 'drizzle-orm';
 import { leagues } from '$lib/db/schemas/leagues/+schema';
 import { games } from '$lib/db/schemas/games/schema';
 import { picks } from '$lib/db/schemas/picks/+schema';
-import { selectable } from '$lib/helpers';
+import { chronologicalSort, selectable } from '$lib/helpers';
 import { validateSelections } from '$lib/api';
 import { updateMultiplePicks, type PickUpdate } from '$lib/db/funcs.server';
 
@@ -49,24 +49,28 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 		.from(games)
 		.where(
 			and(
-				inArray(games.id, eventIds),
+				// inArray(games.id, eventIds),
 				eq(games.year, league.year),
 				eq(games.seasonType, league.seasonType)
 			)
 		)
 		.leftJoin(picks, and(eq(games.id, picks.gameId), eq(picks.playerId, player.id)));
 
-	if (gamesData.length !== eventIds.length) {
-		return error(400, `Not all games found. Some games aren't in league ${leagueId}`);
-	}
-
 	let picksInserts: (typeof picks.$inferInsert)[] = [];
 	let picksUpdates: PickUpdate[] = [];
 
-	gamesData.forEach((element) => {
-		let game = element.games;
-		let pick = element.picks;
-		let weekStart = leagueWeeks[game.week].start;
+	eventIds.forEach((id) => {
+		let val = gamesData.find((element) => element.games.id === id);
+		if (val === undefined) {
+			return error(400, `Not all games found. Some games aren't in league ${leagueId}`);
+		}
+		let game = val.games;
+		let pick = val.picks;
+		let weekGames = gamesData
+			.filter((element) => element.games.week === game.week)
+			.map((element) => element.games);
+		weekGames = chronologicalSort(weekGames);
+		let weekStart = weekGames[0].date;
 
 		let { selected, spread } = selections[game.id];
 
