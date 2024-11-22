@@ -29,25 +29,11 @@
 <div class="h-screen flex items-center justify-center sm:mx-auto sm:w-full sm:max-w-md">
 	<div class="input-group-shim shadow rounded-lg">
 		<div class="flex flex-col w-full items-center space-y-4">
-			<p>Please login</p>
-
 			<TabGroup justify="justify-center">
 				<Tab bind:group={tabSet} name="Login" value={0}>Login</Tab>
-				<Tab bind:group={tabSet} name="Register" value={1}>Register</Tab>
 				<!-- Tab Panels --->
 				<svelte:fragment slot="panel">
 					<form class="select w-full" method="post" action="?/login" autocomplete="off">
-						{#if tabSet === 1}
-							<label class="label block">
-								<span>Display name</span>
-								<input
-									class="input w-full rounded-lg variant-filled-surface"
-									type="text"
-									id="displayName"
-									name="displayName"
-								/>
-							</label>
-						{/if}
 						<label class="label block">
 							<span>Email</span>
 							<input
@@ -105,14 +91,9 @@
 								</label>
 							</span>
 						</label>
-						<span class="w-full flex justify-between">
+						<span class="w-full flex justify-center">
 							{#if tabSet === 0}
-								<button class="btn w-1/4 rounded-lg variant-outline-surface">Log in</button>
-							{/if}
-							{#if tabSet === 1}
-								<button class="btn w-1/4 rounded-lg variant-outline-surface" formaction="?/signup"
-									>Register</button
-								>
+								<button class="btn w-fit rounded-lg variant-outline-surface">Log in</button>
 							{/if}
 						</span>
 					</form>
