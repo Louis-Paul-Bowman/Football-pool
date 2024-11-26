@@ -10,7 +10,7 @@
 
 	const toastStore = getToastStore();
 
-	let { league, weeks, currentWeek } = data;
+	let { league, weeks, currentWeek, baseUrl, proto } = data;
 
 	let selectedWeek = currentWeek;
 	let maxWeek = Math.min(currentWeek + 1, Math.max(...Object.keys(weeks).map(Number)));
@@ -108,7 +108,8 @@
 	}
 
 	async function update() {
-		let resp = await fetch(`/private/updates?leagueId=${league.id}`);
+		const url = `${proto}://${baseUrl}/private/updates?leagueId=${league.id}`;
+		let resp = await fetch(url);
 		if (!resp.ok) {
 			toastStore.trigger({
 				message: await resp.text(),

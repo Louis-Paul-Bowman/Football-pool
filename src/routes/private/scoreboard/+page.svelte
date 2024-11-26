@@ -9,7 +9,7 @@
 
 	const toastStore = getToastStore();
 
-	let { gamePicks, weeks, currentWeek, leaguePlayers, league } = data;
+	let { gamePicks, weeks, currentWeek, leaguePlayers, league, baseUrl, proto } = data;
 	let lastUpdated = new Date(Date.now());
 	const updateTimeout = 1000 * 60;
 	let selectedWeek: number = currentWeek;
@@ -109,12 +109,7 @@
 	async function update() {
 		// console.log("Update.")
 
-		let url = `/private/updates?leagueId=${league.id}`;
-
-		// Needed for setInterval for whatever reason
-		if (browser) {
-			url = `${window.location.origin}${url}`;
-		}
+		const url = `${proto}://${baseUrl}/private/updates?leagueId=${league.id}`;
 
 		let resp = await fetch(url);
 		if (!resp.ok) {
