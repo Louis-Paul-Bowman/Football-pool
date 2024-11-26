@@ -1,8 +1,6 @@
-import {  error } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { EmailOtpType } from '@supabase/supabase-js';
-
-
 
 export const load = (async ({ url, locals: { supabase } }) => {
 	const token_hash = url.searchParams.get('token_hash');
@@ -13,14 +11,13 @@ export const load = (async ({ url, locals: { supabase } }) => {
 	// 	return error(403, "Forbidden")
 	// }
 
-
 	if (token_hash && type) {
 		const { error } = await supabase.auth.verifyOtp({ type, token_hash });
 		if (!error) {
-			return {}
+			return {};
 		}
-		console.log(error)
+		console.log(error);
 	}
 
-	return error(403, "Forbidden")
+	return error(403, 'Forbidden');
 }) satisfies PageServerLoad;

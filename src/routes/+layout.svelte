@@ -57,7 +57,7 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				{#if data.user !== null}
-					<p>{data.user.user_metadata.display_name ?? "No display name set."}</p>
+					<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
 					<Avatar src={avatarImg}></Avatar>
 					<form class="" method="post" action="/?/logout">
 						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>

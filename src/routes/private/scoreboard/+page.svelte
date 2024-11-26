@@ -10,7 +10,8 @@
 	const toastStore = getToastStore();
 
 	let { gamePicks, weeks, currentWeek, leaguePlayers, league } = data;
-	let lastUpdated = new Date(Date.now())
+	let lastUpdated = new Date(Date.now());
+	const updateTimeout = 1000 * 60;
 	let selectedWeek: number = currentWeek;
 	let displayableWeeks: typeof weeks = {};
 	for (const [weekNum, weekData] of Object.entries(weeks)) {
@@ -109,7 +110,7 @@
 		// console.log("Update.")
 
 		let url = `/private/updates?leagueId=${league.id}`;
-  
+
 		// Needed for setInterval for whatever reason
 		if (browser) {
 			url = `${window.location.origin}${url}`;
@@ -135,32 +136,30 @@
 		playersWeeklyScores = scorePlayers();
 	}
 
-	function anyActiveGames(){
+	function anyActiveGames() {
 		let weeksHaveActiveGames = Object.values(weeks).map((week) => {
-			return week.games.some((game) => game.active)
-			})
+			return week.games.some((game) => game.active);
+		});
 
-		return weeksHaveActiveGames.some((active) => active)
+		return weeksHaveActiveGames.some((active) => active);
 	}
 
-	let intervalId: NodeJS.Timeout | null = null
+	let intervalId: NodeJS.Timeout | null = null;
 
-
-	$:{
-		if (intervalId === null && anyActiveGames()){
+	$: {
+		if (intervalId === null && anyActiveGames()) {
 			// console.log("Subscribe.")
-			intervalId = setInterval(update, 1000 * 10)
+			intervalId = setInterval(update, updateTimeout);
 		}
 	}
 
-	$:{
-		if (intervalId !== null && !anyActiveGames()){
+	$: {
+		if (intervalId !== null && !anyActiveGames()) {
 			// console.log("Unsubscribe.")
-			clearInterval(intervalId)
-			intervalId = null
+			clearInterval(intervalId);
+			intervalId = null;
 		}
 	}
-
 </script>
 
 {#if weeks}

@@ -47,48 +47,48 @@ const team2id = {
 } as const;
 
 async function makePicks(
-	p: {p: keyof typeof team2id; s?: number }[],
+	p: { p: keyof typeof team2id; s?: number }[],
 	playerId: number,
 	league: number,
-	week:number
+	week: number
 ) {
 	let res: (typeof picks.$inferInsert)[] = [];
 
-	let weekGames = await db.select().from(games).where(eq(games.week, week))
+	let weekGames = await db.select().from(games).where(eq(games.week, week));
 
 	p.forEach((pick) => {
-		let game = weekGames.find((game) => [game.home, game.away].includes(team2id[pick.p]))
-		
-		if (game === undefined){
-			throw new Error("No such game.")
+		let game = weekGames.find((game) => [game.home, game.away].includes(team2id[pick.p]));
+
+		if (game === undefined) {
+			throw new Error('No such game.');
 		}
-		
-		let gameId = game.id
-		res.push({league, playerId, gameId, pick:team2id[pick.p], spread:pick.s ?? null})
+
+		let gameId = game.id;
+		res.push({ league, playerId, gameId, pick: team2id[pick.p], spread: pick.s ?? null });
 	});
-	return res
+	return res;
 }
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	let p: { p: keyof typeof team2id; s?: number }[] = [
-		{p:"Eagles"},
-		{p:"Packers"},
-		{p:"Lions", s:17},
-		{p:"Dolphins"},
-		{p:"Rams"},
-		{p:"Saints"},
-		{p:"Ravens"},
-		{p:"Vikings", s:10},
-		{p:"Jets"},
-		{p:"49ers"},
-		{p:"Broncos"},
-		{p:"Bills", s:3},
-		{p:"Bengals"},
-		{p:"Texans"},
+		{ p: 'Eagles' },
+		{ p: 'Packers' },
+		{ p: 'Lions', s: 17 },
+		{ p: 'Dolphins' },
+		{ p: 'Rams' },
+		{ p: 'Saints' },
+		{ p: 'Ravens' },
+		{ p: 'Vikings', s: 10 },
+		{ p: 'Jets' },
+		{ p: '49ers' },
+		{ p: 'Broncos' },
+		{ p: 'Bills', s: 3 },
+		{ p: 'Bengals' },
+		{ p: 'Texans' }
 	];
-	let playerId = 10
-	let league = 1
-	let week = 11
+	let playerId = 10;
+	let league = 1;
+	let week = 11;
 	let data = await makePicks(p, playerId, league, week);
 
 	// await db.insert(picks).values(data)
