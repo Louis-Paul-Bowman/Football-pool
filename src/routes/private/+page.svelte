@@ -77,7 +77,8 @@
 			return;
 		}
 
-		let resp = await fetch('/private/picks', {
+		const url = `${proto}://${baseUrl}/private/picks`;
+		let resp = await fetch(url, {
 			method: 'post',
 			body: JSON.stringify({ leagueId: league.id, selections })
 		});
