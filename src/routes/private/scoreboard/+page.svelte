@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
-	import { selectable } from '$lib/helpers.js';
+	import { formatDate, selectable } from '$lib/helpers.js';
 	import { CheckIcon, XIcon } from 'lucide-svelte';
 
 	export let data;
@@ -9,6 +10,7 @@
 	const toastStore = getToastStore();
 
 	let { gamePicks, weeks, currentWeek, leaguePlayers, league } = data;
+	let lastUpdated = new Date(Date.now())
 	let selectedWeek: number = currentWeek;
 	let displayableWeeks: typeof weeks = {};
 	for (const [weekNum, weekData] of Object.entries(weeks)) {
@@ -104,7 +106,16 @@
 	}
 
 	async function update() {
-		let resp = await fetch(`/private/updates?leagueId=${league.id}`);
+		// console.log("Update.")
+
+		let url = `/private/updates?leagueId=${league.id}`;
+  
+		// Needed for setInterval for whatever reason
+		if (browser) {
+			url = `${window.location.origin}${url}`;
+		}
+
+		let resp = await fetch(url);
 		if (!resp.ok) {
 			toastStore.trigger({
 				message: await resp.text(),
@@ -114,6 +125,7 @@
 			return;
 		}
 		({ gamePicks, weeks, currentWeek, leaguePlayers, league } = await resp.json());
+		lastUpdated = new Date(Date.now());
 		displayableWeeks = {};
 		for (const [weekNum, weekData] of Object.entries(weeks)) {
 			if (!selectable(weekData.games[0].date)) {
@@ -122,6 +134,33 @@
 		}
 		playersWeeklyScores = scorePlayers();
 	}
+
+	function anyActiveGames(){
+		let weeksHaveActiveGames = Object.values(weeks).map((week) => {
+			return week.games.some((game) => game.active)
+			})
+
+		return weeksHaveActiveGames.some((active) => active)
+	}
+
+	let intervalId: NodeJS.Timeout | null = null
+
+
+	$:{
+		if (intervalId === null && anyActiveGames()){
+			// console.log("Subscribe.")
+			intervalId = setInterval(update, 1000 * 10)
+		}
+	}
+
+	$:{
+		if (intervalId !== null && !anyActiveGames()){
+			// console.log("Unsubscribe.")
+			clearInterval(intervalId)
+			intervalId = null
+		}
+	}
+
 </script>
 
 {#if weeks}
@@ -137,6 +176,10 @@
 				>
 			</div>
 		</TabGroup>
+	</div>
+
+	<div>
+		<p>Updated: {formatDate(lastUpdated)}</p>
 	</div>
 
 	<div class="table-container">
