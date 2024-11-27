@@ -11,13 +11,21 @@
 	//Supabase and auth
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { checkCookie } from '$lib/helpers';
 
 	export let data;
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
 
-	const avatarImg = '/img/avatar/jacoby.jpg';
+	const pfps = ['/img/avatar/jacoby.jpg', "/img/avatar/kermit_mahomes.jfif", "/img/avatar/peyton_balaclava.jpeg"]
+	let avatar = data.avatar !== null && pfps.includes(data.avatar) ? data.avatar : pfps[0]
+
+	function rotateProfilePicture() {
+		let avatarInd = pfps.findIndex((pfp) => pfp === avatar)
+		avatar = pfps[(avatarInd + 1) % pfps.length]
+		document.cookie = `avatar=${avatar};max-age=31536000;path="/"`;
+	}
 
 	$: ({ session, supabase } = data);
 
@@ -58,7 +66,9 @@
 			<svelte:fragment slot="trail">
 				{#if data.user !== null}
 					<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
-					<Avatar src={avatarImg}></Avatar>
+					<button on:click={rotateProfilePicture}>
+						<Avatar src={avatar}></Avatar>
+					</button>
 					<form class="" method="post" action="/?/logout">
 						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>
 					</form>
