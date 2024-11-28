@@ -79,3 +79,18 @@ export function unflattenWeeks<T extends { week: number }>(flat: T[]): Record<nu
 	});
 	return unflattenedWeeks;
 }
+
+
+export function parseCookies() {
+	const cookies: Record<string, string> = {};
+	document.cookie.split(';').forEach(cookie => {
+	  const [key, value] = cookie.trim().split('=');
+	  cookies[key] = decodeURIComponent(value);
+	});
+	return cookies;
+  }
+
+export function checkCookie(name:string): string | undefined {
+	const cookies = parseCookies();
+	return cookies[name]
+  }

@@ -9,6 +9,8 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	 */
 	depends('supabase:auth');
 
+	const avatarCookie = data.cookies.find((cookie) => cookie.name === "avatar")
+
 	const supabase = isBrowser()
 		? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 				global: {
@@ -39,5 +41,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		data: { user }
 	} = await supabase.auth.getUser();
 
-	return { session, supabase, user };
+
+
+	return { session, supabase, user, avatar: avatarCookie === undefined ? null : avatarCookie.value};
 };
