@@ -18,12 +18,22 @@
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
 
-	const pfps = ['/img/avatar/jacoby.jpg', "/img/avatar/kermit_mahomes.jfif", "/img/avatar/peyton_balaclava.jpeg"]
-	let avatar = data.avatar !== null && pfps.includes(data.avatar) ? data.avatar : pfps[0]
+	const pfps = [
+		'jacoby.jpg',
+		'kermit_mahomes.jfif',
+		'peyton_balaclava.jpeg',
+		'aaron_concussion.jpg',
+		'mcdaniel_sad.webp',
+		"brady_rings.jpg",
+		// "brady_goat.webp",
+		"taylor.jpg",
+		"josh_potato.png"
+	];
+	let avatar = data.avatar !== null && pfps.includes(data.avatar) ? data.avatar : pfps[0];
 
 	function rotateProfilePicture() {
-		let avatarInd = pfps.findIndex((pfp) => pfp === avatar)
-		avatar = pfps[(avatarInd + 1) % pfps.length]
+		let avatarInd = pfps.findIndex((pfp) => pfp === avatar);
+		avatar = pfps[(avatarInd + 1) % pfps.length];
 		document.cookie = `avatar=${avatar};max-age=31536000;path="/"`;
 	}
 
@@ -67,7 +77,7 @@
 				{#if data.user !== null}
 					<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
 					<button on:click={rotateProfilePicture}>
-						<Avatar src={avatar}></Avatar>
+						<Avatar src={`/img/avatar/${avatar}`}></Avatar>
 					</button>
 					<form class="" method="post" action="/?/logout">
 						<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>
