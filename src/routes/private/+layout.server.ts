@@ -42,6 +42,6 @@ export const load = (async ({ locals: { user } }) => {
 		...playerLeagueData,
 		currentWeek: getCurrentWeek(playerLeagueData.league),
 		proto: PROTO,
-		baseUrl:VERCEL_PROJECT_PRODUCTION_URL
+		baseUrl: VERCEL_PROJECT_PRODUCTION_URL
 	};
 }) satisfies LayoutServerLoad;

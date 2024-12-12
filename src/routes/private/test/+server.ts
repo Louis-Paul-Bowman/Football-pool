@@ -71,24 +71,23 @@ async function makePicks(
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	let p: { p: keyof typeof team2id; s?: number }[] = [
-		{ p: 'Eagles' },
-		{ p: 'Packers' },
-		{ p: 'Lions', s: 17 },
-		{ p: 'Dolphins' },
-		{ p: 'Rams' },
-		{ p: 'Saints' },
-		{ p: 'Ravens' },
-		{ p: 'Vikings', s: 10 },
-		{ p: 'Jets' },
-		{ p: '49ers' },
-		{ p: 'Broncos' },
-		{ p: 'Bills', s: 3 },
-		{ p: 'Bengals' },
-		{ p: 'Texans' }
+		{ p: "Lions" },
+		{ p: "Dolphins"},
+		{ p: "Vikings"},
+		{ p: "Saints"},
+		{ p: "Eagles", s:13},
+		{ p: "Steelers", s:10},
+		{ p: "Buccaneers"},
+		{ p: "Titans"},
+		{ p: "Cardinals"},
+		{ p: "Bills", s:8},
+		{ p: "49ers"},
+		{ p: "Chiefs"},
+		{ p: "Cowboys"},
 	];
-	let playerId = 10;
+	let playerId = 19;
 	let league = 1;
-	let week = 11;
+	let week = 14;
 	let data = await makePicks(p, playerId, league, week);
 
 	// await db.insert(picks).values(data)
