@@ -19,6 +19,9 @@ export interface GameUpdate {
 	awayScore?: typeof games.$inferInsert.awayScore;
 	active?: typeof games.$inferInsert.active;
 	final?: typeof games.$inferInsert.final;
+	date?: typeof games.$inferInsert.date;
+    home?: typeof games.$inferInsert.home;
+    away?: typeof games.$inferInsert.away;
 }
 
 const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpdate[]) => {
@@ -31,17 +34,25 @@ const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpd
 			if (columnName === 'updated' && update.updated instanceof Date) {
 				// Convert Date to ISO8601 string
 				value = sql`${update.updated.toISOString()}`;
-			} else {
+			} 
+			else if (columnName === 'date' && update.date instanceof Date) {
+				// Convert Date to ISO8601 string
+				value = sql`${update.date.toISOString()}`;
+			}
+			else {
 				value = sql`${update[columnName]}`;
 			}
 
 			// Handle type casting for specific columns
-			if (columnName === 'homeScore' || columnName === 'awayScore') {
+			if (['homeScore', 'awayScore'].includes(columnName)) {
 				value = sql`cast(${value} as integer)`;
-			} else if (columnName === 'active' || columnName === 'final') {
+			} else if (['active', 'final'].includes(columnName)) {
 				value = sql`cast(${value} as boolean)`;
-			} else if (columnName === 'updated') {
+			} else if (['updated', 'date'].includes(columnName)) {
 				value = sql`cast(${value} as timestamp)`;
+			}
+			else if (['home', 'away'].includes(columnName)) {
+				value = sql`cast(${value} as "teamIdsEnum")`;
 			}
 
 			sqlChunks.push(sql`when ${games.id} = ${update.id} then ${value}`);
@@ -63,6 +74,9 @@ export async function updateMultipleGames(
 	const awayScoreCase = createGamesCaseStatement('awayScore', updates);
 	const activeCase = createGamesCaseStatement('active', updates);
 	const finalCase = createGamesCaseStatement('final', updates);
+	const dateCase = createGamesCaseStatement("date", updates)
+	const homeCase = createGamesCaseStatement("home", updates)
+	const awayCase = createGamesCaseStatement("away", updates)
 
 	const ids = updates.map((update) => update.id);
 
@@ -73,7 +87,10 @@ export async function updateMultipleGames(
 			awayScore: awayScoreCase,
 			active: activeCase,
 			final: finalCase,
-			updated: updatedCase
+			updated: updatedCase,
+			date: dateCase,
+			home:homeCase,
+			away:awayCase
 		})
 		.where(inArray(games.id, ids))
 		.returning();
@@ -128,7 +145,10 @@ async function getUpdates(league: typeof leagues.$inferSelect, weeksToUpdate: nu
 					homeScore: game.homeScore,
 					awayScore: game.awayScore,
 					active: game.active,
-					final: game.final
+					final: game.final,
+					date: new Date(game.date),
+					home: game.home,
+					away: game.away
 				};
 			});
 		})
