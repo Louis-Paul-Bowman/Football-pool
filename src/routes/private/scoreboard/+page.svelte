@@ -3,7 +3,7 @@
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
 	import { formatDate, selectable } from '$lib/helpers.js';
-	import { CheckIcon, XIcon } from 'lucide-svelte';
+	import { CheckIcon, XIcon, ArrowDownAZIcon, ArrowDownZaIcon, ArrowDown01Icon, ArrowDown10Icon} from 'lucide-svelte';
 
 	export let data;
 
@@ -20,7 +20,13 @@
 			selectedWeek = Number(weekNum);
 		}
 	}
+	let intervalId: NodeJS.Timeout | null = null;
 	let playersWeeklyScores = scorePlayers();
+	let hiddenPlayers:  number[] = [];
+	const sortOptions = ["A-Z", "Week", "Total"] as const
+	let sort: (typeof sortOptions)[number] = "A-Z"
+	let ascending: boolean = true
+
 
 	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
 		let winner =
@@ -139,7 +145,49 @@
 		return weeksHaveActiveGames.some((active) => active);
 	}
 
-	let intervalId: NodeJS.Timeout | null = null;
+	function cycleSort(){
+		sort = sortOptions[(sortOptions.findIndex((option) => sort === option) + 1) % sortOptions.length]
+	}
+
+	function sortLeaguePlayersByAlphabeticalName(ascending:boolean = true): void {
+  		leaguePlayers.sort((a, b) => {
+		if (!a.name || !b.name) {
+		return 0; // Handle undefined/null names
+		}
+    
+		// Sort case-insensitively
+		const result = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+		return ascending ? result : -result;
+	});
+	};
+
+	function sortLeaguePlayersByScore(kind: "week" | "cumulative", selectedWeek:number, ascending:boolean = true): void {
+		leaguePlayers.sort((a, b) => {
+			const scoreA = playersWeeklyScores[a.id][selectedWeek][kind];
+			const scoreB = playersWeeklyScores[b.id][selectedWeek][kind];
+
+			const result = scoreA - scoreB;
+			return ascending ? result : -result;
+		});
+	}
+
+
+	$: {
+		
+		if (sort === "A-Z"){
+			sortLeaguePlayersByAlphabeticalName(ascending)
+		}
+		else if (sort === "Week") {
+			sortLeaguePlayersByScore("week", selectedWeek, ascending)
+		}
+		else if (sort === "Total") {
+			sortLeaguePlayersByScore("cumulative", selectedWeek, ascending)
+		}
+		// sort is inplace but need to re-assign to trigger re-render
+		leaguePlayers = leaguePlayers
+	};
+		
+		
 
 	$: {
 		if (intervalId === null && anyActiveGames()) {
@@ -180,7 +228,30 @@
 		<table class="table table-hover text-center">
 			<thead>
 				<tr>
-					<th></th>
+					<th>
+						<div class="grid grid-colums-1 items-center justify-center space-y-2 place-items-center">
+							<div class= "flex items-center align-middle">
+								<button class="btn w-fit text-center rounded-lg variant-filled-surface" on:click={cycleSort}>{sort}</button>
+								<button on:click={() => ascending = !ascending}>
+									{#if sort === "A-Z"}
+										{#if ascending}
+											<ArrowDownAZIcon></ArrowDownAZIcon>
+										{:else}
+											<ArrowDownZaIcon></ArrowDownZaIcon>
+										{/if}
+									{:else if ["Week", "Total"].includes(sort)}
+										{#if ascending}
+											<ArrowDown01Icon></ArrowDown01Icon>
+										{:else}
+											<ArrowDown10Icon></ArrowDown10Icon>
+										{/if}
+									{/if}	
+								</button>
+								
+							</div>
+							<button class="btn w-full text-center rounded-lg variant-filled-surface" on:click={() => hiddenPlayers = []}>Reset</button>
+						</div>
+					</th>
 					{#each weeks[selectedWeek].games as game (game.id)}
 						<!-- <th>{getTitle(game)}</th> -->
 						<th>
@@ -263,7 +334,7 @@
 											</p>
 										{/if}
 									{:else}
-										<p>Tied.</p>
+										<p>Tied ({game.homeScore}-{game.awayScore}).</p>
 									{/if}
 								{:else}
 									<p></p>
@@ -275,50 +346,59 @@
 					<th></th>
 				</tr>
 				{#each leaguePlayers as player}
-					<tr>
-						<th>{player.name}</th>
-						{#each weeks[selectedWeek].games as game (game.id)}
-							<!-- <td>{gamePicks[game.id].find((pick) => pick.playerId === player.id)?.pick}</td> -->
-							<td>
-								<div class="flex flex-col items-center justify-center space-y-1">
-									<div class="flex items-center justify-center">
-										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].pick !== undefined}
-											<img
-												src="/img/logos/svg/{gamePicks[game.id][player.id].pick}.svg"
-												alt="{teams[gamePicks[game.id][player.id].pick]} logo"
-												class="w-8 h-8 mr-1"
-											/>
-										{/if}
-
-										{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].spread}
-											<p class="text-sm">({gamePicks[game.id][player.id].spread})</p>
-										{/if}
-									</div>
-
-									{#if game.active || game.final}
+					{#if !hiddenPlayers.includes(player.id)}
+						<tr>
+							<th>
+								<div class="flex gap-x-2 items-center justify-center">
+									<button on:click={() => hiddenPlayers = [...hiddenPlayers, player.id]}>
+										<XIcon size={20} color="black" class="border border-black"/>
+									</button>
+									<p>{player.name}</p>
+								</div>
+							</th>
+							{#each weeks[selectedWeek].games as game (game.id)}
+								<!-- <td>{gamePicks[game.id].find((pick) => pick.playerId === player.id)?.pick}</td> -->
+								<td>
+									<div class="flex flex-col items-center justify-center space-y-1">
 										<div class="flex items-center justify-center">
-											{#if playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] === 0}
-												<XIcon size={24} color="red" />
-												{#if league.spreadGames.includes(game.id)}
-													<span class="ml-1 text-xs">(+0)</span>
-												{/if}
-											{:else}
-												<CheckIcon size={24} color="green" />
-												{#if league.spreadGames.includes(game.id)}
-													<span class="ml-1 text-xs"
-														>(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] -
-															1})</span
-													>
-												{/if}
+											{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].pick !== undefined}
+												<img
+													src="/img/logos/svg/{gamePicks[game.id][player.id].pick}.svg"
+													alt="{teams[gamePicks[game.id][player.id].pick]} logo"
+													class="w-8 h-8 mr-1"
+												/>
+											{/if}
+
+											{#if gamePicks[game.id][player.id] !== undefined && gamePicks[game.id][player.id].spread}
+												<p class="text-sm">({gamePicks[game.id][player.id].spread})</p>
 											{/if}
 										</div>
-									{/if}
-								</div>
-							</td>
-						{/each}
-						<td>{playersWeeklyScores[player.id][selectedWeek].week}</td>
-						<td>{playersWeeklyScores[player.id][selectedWeek].cumulative}</td>
-					</tr>
+
+										{#if game.active || game.final}
+											<div class="flex items-center justify-center">
+												{#if playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] === 0}
+													<XIcon size={24} color="red" />
+													{#if league.spreadGames.includes(game.id)}
+														<span class="ml-1 text-xs">(+0)</span>
+													{/if}
+												{:else}
+													<CheckIcon size={24} color="green" />
+													{#if league.spreadGames.includes(game.id)}
+														<span class="ml-1 text-xs"
+															>(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] -
+																1})</span
+														>
+													{/if}
+												{/if}
+											</div>
+										{/if}
+									</div>
+								</td>
+							{/each}
+							<td>{playersWeeklyScores[player.id][selectedWeek].week}</td>
+							<td>{playersWeeklyScores[player.id][selectedWeek].cumulative}</td>
+						</tr>
+					{/if}
 				{/each}
 			</tbody>
 		</table>
