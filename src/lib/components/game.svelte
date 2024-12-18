@@ -36,8 +36,8 @@
 
 	let awayCSS = '';
 	let homeCSS = '';
-	const hoverEffect = 'hover:border-green-500 hover:border-dashed hover:border-8';
-	const selectedEffect = 'border-green-500 border-8';
+	const hoverEffect = 'hover:border-tertiary-500 hover:border-dashed hover:border-8';
+	const selectedEffect = 'border-tertiary-500 border-8';
 
 	$: {
 		leader =

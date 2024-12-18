@@ -90,4 +90,14 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle: Handle = sequence(supabase, authGuard);
+const SSRDarkMode: Handle = async ({ event, resolve }) => {
+	const darkModeSelected = event.cookies.get('darkMode') === 'true';
+	const darkMode = darkModeSelected ? 'dark' : '';
+	// Replace the placeholder with the actual attributes
+	const response = await resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('%DARKMODE%', darkMode)
+	});
+	return response;
+};
+
+export const handle: Handle = sequence(supabase, authGuard, SSRDarkMode);
