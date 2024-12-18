@@ -10,6 +10,8 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	depends('supabase:auth');
 
 	const avatarCookie = data.cookies.find((cookie) => cookie.name === 'avatar');
+	const darkModeCookie = data.cookies.find((cookie) => cookie.name === 'darkMode');
+	const themeCookie = data.cookies.find((cookie) => cookie.name === 'theme');
 
 	const supabase = isBrowser()
 		? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
@@ -41,10 +43,14 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		data: { user }
 	} = await supabase.auth.getUser();
 
+	const defaultDarkMode = true
+	const defaultTheme = "rocket"
 	return {
 		session,
 		supabase,
 		user,
-		avatar: avatarCookie === undefined ? null : avatarCookie.value
+		avatar: avatarCookie === undefined ? null : avatarCookie.value,
+		darkMode: darkModeCookie === undefined ? defaultDarkMode : darkModeCookie.value === "true" ? true : false,
+		theme: themeCookie === undefined ? defaultTheme : themeCookie.value
 	};
 };
