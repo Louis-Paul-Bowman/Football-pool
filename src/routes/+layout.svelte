@@ -14,8 +14,8 @@
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
 
-	let darkMode = data.darkMode;
-	let currentTheme = data.theme;
+	const defaultDarkMode = true;
+	const defaultTheme = 'patriots';
 
 	let modalOpen = false;
 
@@ -65,6 +65,8 @@
 		'taylor.jpg',
 		'josh_potato.png'
 	];
+	let darkMode = data.darkMode ?? defaultDarkMode;
+	let currentTheme = data.theme !== null && themes.includes(data.theme) ? data.theme : defaultTheme;
 	let avatar = data.avatar !== null && pfps.includes(data.avatar) ? data.avatar : pfps[0];
 
 	function cycleProfilePicture() {
