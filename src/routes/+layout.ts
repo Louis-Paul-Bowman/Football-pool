@@ -44,7 +44,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	} = await supabase.auth.getUser();
 
 	const defaultDarkMode = true;
-	const defaultTheme = 'bills';
+	const defaultTheme = 'patriots';
 	return {
 		session,
 		supabase,
