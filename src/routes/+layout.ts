@@ -43,8 +43,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		data: { user }
 	} = await supabase.auth.getUser();
 
-	const defaultDarkMode = true;
-	const defaultTheme = 'patriots';
+	
 	return {
 		session,
 		supabase,
@@ -52,10 +51,10 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		avatar: avatarCookie === undefined ? null : avatarCookie.value,
 		darkMode:
 			darkModeCookie === undefined
-				? defaultDarkMode
+				? null
 				: darkModeCookie.value === 'true'
 					? true
 					: false,
-		theme: themeCookie === undefined ? defaultTheme : themeCookie.value
+		theme: themeCookie === undefined ? null : themeCookie.value
 	};
 };
