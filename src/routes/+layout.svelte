@@ -103,10 +103,10 @@
 	<!-- App Shell -->
 	<AppShell scrollbarGutter="stable" data-theme={currentTheme}>
 		<svelte:fragment slot="header">
-			<div class="px-4 py-2 flex justify-between items-center bg-surface-100-800-token">
-				<div class="w-1/3">
+			<div class="px-4 py-2 flex flex-wrap justify-between items-center bg-surface-100-800-token">
+				<div class="flex flex-wrap max-w-1/3">
 					<div class="flex space-x-3 items-center">
-						<strong class="text-xl uppercase">Football</strong>
+						<!-- <strong class="text-xl uppercase">Football</strong> -->
 						<button class="btn btn-sm variant-ghost-secondary" on:click={toggleDarkMode}>
 							{#if darkMode}
 								<svg viewBox="0 0 24 24" class="w-6 h-6">
@@ -129,11 +129,11 @@
 							class="btn btn-sm variant-ghost-secondary"
 							on:click={() => (modalOpen = !modalOpen)}
 						>
-							Change Theme
+							Theme
 						</button>
 					</div>
 				</div>
-				<div class="w-1/3">
+				<div class="flex flex-wrap max-w-1/3">
 					{#if data.user !== null}
 						<div class="flex-grow flex items-center justify-center">
 							<div class="flex items-center justify-center gap-x-8">
@@ -143,7 +143,7 @@
 						</div>
 					{/if}
 				</div>
-				<div class="w-1/3">
+				<div class="flex flex-wrap max-w-1/3">
 					<div class="flex-grow flex items-center justify-end space-x-3">
 						{#if data.user !== null}
 							<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
