@@ -71,19 +71,19 @@ async function makePicks(
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	let p: { p: keyof typeof team2id; s?: number }[] = [
-		{ p: "Lions" },
-		{ p: "Dolphins"},
-		{ p: "Vikings"},
-		{ p: "Saints"},
-		{ p: "Eagles", s:13},
-		{ p: "Steelers", s:10},
-		{ p: "Buccaneers"},
-		{ p: "Titans"},
-		{ p: "Cardinals"},
-		{ p: "Bills", s:8},
-		{ p: "49ers"},
-		{ p: "Chiefs"},
-		{ p: "Cowboys"},
+		{ p: 'Lions' },
+		{ p: 'Dolphins' },
+		{ p: 'Vikings' },
+		{ p: 'Saints' },
+		{ p: 'Eagles', s: 13 },
+		{ p: 'Steelers', s: 10 },
+		{ p: 'Buccaneers' },
+		{ p: 'Titans' },
+		{ p: 'Cardinals' },
+		{ p: 'Bills', s: 8 },
+		{ p: '49ers' },
+		{ p: 'Chiefs' },
+		{ p: 'Cowboys' }
 	];
 	let playerId = 19;
 	let league = 1;

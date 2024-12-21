@@ -3,7 +3,40 @@ import type { Config } from 'tailwindcss';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
-import { bills } from './themes/bills';
+import {
+	bills,
+	ravens,
+	bengals,
+	browns,
+	steelers,
+	dolphins,
+	patriots,
+	jets,
+	texans,
+	colts,
+	jaguars,
+	titans,
+	broncos,
+	chiefs,
+	raiders,
+	chargers,
+	bears,
+	lions,
+	packers,
+	vikings,
+	cowboys,
+	giants,
+	eagles,
+	commanders,
+	falcons,
+	panthers,
+	saints,
+	buccaneers,
+	cardinals,
+	rams,
+	niners,
+	seahawks
+} from './themes';
 
 export default {
 	darkMode: 'class',
@@ -19,51 +52,81 @@ export default {
 		typography,
 		skeleton({
 			themes: {
-				preset: [
-					{
-						name: 'crimson',
-						enhancements: true
-					},
-					{
-						name: 'gold-nouveau',
-						enhancements: true
-					},
-					{
-						name: 'hamlindigo',
-						enhancements: true
-					},
-					{
-						name: 'modern',
-						enhancements: true
-					},
-					{
-						name: 'rocket',
-						enhancements: true
-					},
-					{
-						name: 'sahara',
-						enhancements: true
-					},
-					{
-						name: 'seafoam',
-						enhancements: true
-					},
-					{
-						name: 'skeleton',
-						enhancements: true
-					},
-					{
-						name: 'vintage',
-						enhancements: true
-					},
-					{
-						name: 'wintry',
-						enhancements: true
-					},
-					
-				],
+				// preset: [
+				// 	{
+				// 		name: 'crimson',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'gold-nouveau',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'hamlindigo',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'modern',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'rocket',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'sahara',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'seafoam',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'skeleton',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'vintage',
+				// 		enhancements: true
+				// 	},
+				// 	{
+				// 		name: 'wintry',
+				// 		enhancements: true
+				// 	}
+				// ],
 				custom: [
-					bills
+					bills,
+					ravens,
+					bengals,
+					browns,
+					steelers,
+					dolphins,
+					patriots,
+					jets,
+					texans,
+					colts,
+					jaguars,
+					titans,
+					broncos,
+					chiefs,
+					raiders,
+					chargers,
+					bears,
+					lions,
+					packers,
+					vikings,
+					cowboys,
+					giants,
+					eagles,
+					commanders,
+					falcons,
+					panthers,
+					saints,
+					buccaneers,
+					cardinals,
+					rams,
+					niners,
+					seahawks
 				]
 			}
 		})

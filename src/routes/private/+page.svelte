@@ -133,12 +133,12 @@
 			<div>
 				<button
 					on:click={async () => await update()}
-					class="btn w-16 text-center rounded-lg variant-filled-surface">Update</button
+					class="btn w-16 text-center rounded-lg variant-filled-secondary">Update</button
 				>
 				{#if selectable(weeks[selectedWeek].games[0].date)}
 					<button
 						on:click={async () => await handleSubmit()}
-						class="btn w-16 text-center rounded-lg variant-filled-surface">Submit</button
+						class="btn w-16 text-center rounded-lg variant-filled-secondary">Submit</button
 					>
 				{/if}
 			</div>
