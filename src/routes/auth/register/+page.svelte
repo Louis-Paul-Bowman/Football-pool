@@ -53,7 +53,7 @@
 					<span>Display name</span>
 					<input
 						bind:value={displayName}
-						class="input w-full rounded-lg variant-filled-surface"
+						class="input w-full rounded-lg variant-filled-secondary"
 						type="text"
 						id="displayName"
 						name="displayName"
@@ -65,7 +65,7 @@
 						<input
 							bind:value={password}
 							required
-							class="input w-full rounded-lg variant-filled-surface"
+							class="input w-full rounded-lg variant-filled-secondary"
 							type="password"
 							id="password"
 							name="password"
@@ -76,14 +76,14 @@
 						<input
 							bind:value={confirm}
 							required
-							class="input w-full rounded-lg variant-filled-surface"
+							class="input w-full rounded-lg variant-filled-secondary"
 							type="password"
 							id="password"
 							name="password"
 						/>
 					</span>
 					<span class="w-full flex justify-center">
-						<button on:click={register} class="btn w-fit rounded-lg variant-outline-surface"
+						<button on:click={register} class="btn w-fit rounded-lg variant-outline-secondary"
 							>Set password</button
 						>
 					</span>

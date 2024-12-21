@@ -1,12 +1,9 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
-	import { Avatar } from '@skeletonlabs/skeleton';
-	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
+	import { AppShell, Avatar, initializeStores, Toast, storePopup } from '@skeletonlabs/skeleton';
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { storePopup } from '@skeletonlabs/skeleton';
 
 	//Supabase and auth
 	import { invalidate } from '$app/navigation';
@@ -20,30 +17,53 @@
 	let darkMode = data.darkMode;
 	let currentTheme = data.theme;
 
+	let modalOpen = false;
+
 	const themes = [
-		'crimson',
-		'gold-nouveau',
-		'hamlindigo',
-		'modern',
-		'rocket',
-		'sahara',
-		'seafoam',
-		'skeleton',
-		'vintage',
-		'wintry',
-		'bills'
+		'49ers',
+		'Bears',
+		'Bengals',
+		'Bills',
+		'Broncos',
+		'Browns',
+		'Buccaneers',
+		'Cardinals',
+		'Chargers',
+		'Chiefs',
+		'Colts',
+		'Commanders',
+		'Cowboys',
+		'Dolphins',
+		'Eagles',
+		'Falcons',
+		'Giants',
+		'Jaguars',
+		'Jets',
+		'Lions',
+		'Packers',
+		'Panthers',
+		'Patriots',
+		'Raiders',
+		'Rams',
+		'Ravens',
+		'Saints',
+		'Seahawks',
+		'Steelers',
+		'Texans',
+		'Titans',
+		'Vikings'
 	];
-	
+
 	const pfps = [
 		'jacoby.jpg',
 		'kermit_mahomes.jfif',
 		'peyton_balaclava.jpeg',
 		'aaron_concussion.jpg',
 		'mcdaniel_sad.webp',
-		"brady_rings.jpg",
+		'brady_rings.jpg',
 		// "brady_goat.webp",
-		"taylor.jpg",
-		"josh_potato.png"
+		'taylor.jpg',
+		'josh_potato.png'
 	];
 	let avatar = data.avatar !== null && pfps.includes(data.avatar) ? data.avatar : pfps[0];
 
@@ -59,13 +79,6 @@
 			? document.documentElement.classList.add('dark')
 			: document.documentElement.classList.remove('dark');
 		document.cookie = `darkMode=${darkMode};max-age=31536000;path="/"`;
-	}
-
-	function cycleTheme() {
-		const index = themes.indexOf(currentTheme);
-		currentTheme = themes[(index + 1) % themes.length];
-		document.cookie = `theme=${currentTheme};max-age=31536000;path="/"`;
-		document.documentElement.setAttribute('data-theme', currentTheme);
 	}
 
 	$: ({ session, supabase } = data);
@@ -94,25 +107,29 @@
 				<div class="flex flex-wrap max-w-1/3">
 					<div class="flex space-x-3 items-center">
 						<!-- <strong class="text-xl uppercase">Football</strong> -->
-						<button class="btn btn-sm variant-ghost-surface" on:click={toggleDarkMode}>
+						<button class="btn btn-sm variant-ghost-secondary" on:click={toggleDarkMode}>
 							{#if darkMode}
 								<svg viewBox="0 0 24 24" class="w-6 h-6">
 									<path
-									fill="currentColor"
-									d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,15.31L23.31,12L20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31Z"
+										fill="currentColor"
+										d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,15.31L23.31,12L20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31Z"
 									></path>
 								</svg>
 							{:else}
 								<svg viewBox="0 0 24 24" class="w-6 h-6">
 									<path
-									fill="currentColor"
-									d="M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z">
+										fill="currentColor"
+										d="M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z"
+									>
 									</path>
 								</svg>
 							{/if}
 						</button>
-						<button class="btn btn-sm variant-ghost-surface" on:click={cycleTheme}>
-								Theme
+						<button
+							class="btn btn-sm variant-ghost-secondary"
+							on:click={() => (modalOpen = !modalOpen)}
+						>
+							Theme
 						</button>
 					</div>
 				</div>
@@ -128,21 +145,43 @@
 				</div>
 				<div class="flex flex-wrap max-w-1/3">
 					<div class="flex-grow flex items-center justify-end space-x-3">
-					{#if data.user !== null}
-						<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
-						<button on:click={cycleProfilePicture}>
-							<Avatar src={`/img/avatar/${avatar}`}></Avatar>
-						</button>
-						<form class="" method="post" action="/?/logout">
-							<button class="btn w-16 text-center rounded-lg variant-outline-surface">Logout</button>
-						</form>
-						<!-- {:else}
+						{#if data.user !== null}
+							<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
+							<button on:click={cycleProfilePicture}>
+								<Avatar src={`/img/avatar/${avatar}`}></Avatar>
+							</button>
+							<form class="" method="post" action="/?/logout">
+								<button class="btn w-16 text-center rounded-lg variant-outline-secondary"
+									>Logout</button
+								>
+							</form>
+							<!-- {:else}
 						<a class="btn w-16 text-center rounded-lg variant-outline-surface" href="/auth">Login</a> -->
-					{/if}
+						{/if}
 					</div>
 				</div>
 			</div>
 		</svelte:fragment>
+		<!-- Modal -->
+		{#if modalOpen}
+			<div class="fixed inset-0 bg-black bg-opacity-25 flex justify-center items-center">
+				<div class="card card-body border-0 p-5 rounded shadow-lg max-h-[80vh] overflow-y-auto">
+					<div class="grid grid-cols-4 gap-4">
+						{#each themes as theme, index}
+							<button
+								on:click={() => {
+									currentTheme = theme;
+									modalOpen = false;
+								}}
+								class="btn variant-ghost-secondary w-full"
+							>
+								{theme}
+							</button>
+						{/each}
+					</div>
+				</div>
+			</div>
+		{/if}
 		<!-- Page Route Content -->
 		<slot />
 	</AppShell>

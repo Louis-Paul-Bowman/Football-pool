@@ -3,7 +3,14 @@
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
 	import { formatDate, selectable } from '$lib/helpers.js';
-	import { CheckIcon, XIcon, ArrowDownAZIcon, ArrowDownZaIcon, ArrowDown01Icon, ArrowDown10Icon} from 'lucide-svelte';
+	import {
+		CheckIcon,
+		XIcon,
+		ArrowDownAZIcon,
+		ArrowDownZaIcon,
+		ArrowDown01Icon,
+		ArrowDown10Icon
+	} from 'lucide-svelte';
 
 	export let data;
 
@@ -22,11 +29,10 @@
 	}
 	let intervalId: NodeJS.Timeout | null = null;
 	let playersWeeklyScores = scorePlayers();
-	let hiddenPlayers:  number[] = [];
-	const sortOptions = ["A-Z", "Week", "Total"] as const
-	let sort: (typeof sortOptions)[number] = "A-Z"
-	let ascending: boolean = true
-
+	let hiddenPlayers: number[] = [];
+	const sortOptions = ['A-Z', 'Week', 'Total'] as const;
+	let sort: (typeof sortOptions)[number] = 'A-Z';
+	let ascending: boolean = true;
 
 	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
 		let winner =
@@ -145,23 +151,28 @@
 		return weeksHaveActiveGames.some((active) => active);
 	}
 
-	function cycleSort(){
-		sort = sortOptions[(sortOptions.findIndex((option) => sort === option) + 1) % sortOptions.length]
+	function cycleSort() {
+		sort =
+			sortOptions[(sortOptions.findIndex((option) => sort === option) + 1) % sortOptions.length];
 	}
 
-	function sortLeaguePlayersByAlphabeticalName(ascending:boolean = true): void {
-  		leaguePlayers.sort((a, b) => {
-		if (!a.name || !b.name) {
-		return 0; // Handle undefined/null names
-		}
-    
-		// Sort case-insensitively
-		const result = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-		return ascending ? result : -result;
-	});
-	};
+	function sortLeaguePlayersByAlphabeticalName(ascending: boolean = true): void {
+		leaguePlayers.sort((a, b) => {
+			if (!a.name || !b.name) {
+				return 0; // Handle undefined/null names
+			}
 
-	function sortLeaguePlayersByScore(kind: "week" | "cumulative", selectedWeek:number, ascending:boolean = true): void {
+			// Sort case-insensitively
+			const result = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+			return ascending ? result : -result;
+		});
+	}
+
+	function sortLeaguePlayersByScore(
+		kind: 'week' | 'cumulative',
+		selectedWeek: number,
+		ascending: boolean = true
+	): void {
 		leaguePlayers.sort((a, b) => {
 			const scoreA = playersWeeklyScores[a.id][selectedWeek][kind];
 			const scoreB = playersWeeklyScores[b.id][selectedWeek][kind];
@@ -171,23 +182,17 @@
 		});
 	}
 
-
 	$: {
-		
-		if (sort === "A-Z"){
-			sortLeaguePlayersByAlphabeticalName(ascending)
-		}
-		else if (sort === "Week") {
-			sortLeaguePlayersByScore("week", selectedWeek, ascending)
-		}
-		else if (sort === "Total") {
-			sortLeaguePlayersByScore("cumulative", selectedWeek, ascending)
+		if (sort === 'A-Z') {
+			sortLeaguePlayersByAlphabeticalName(ascending);
+		} else if (sort === 'Week') {
+			sortLeaguePlayersByScore('week', selectedWeek, ascending);
+		} else if (sort === 'Total') {
+			sortLeaguePlayersByScore('cumulative', selectedWeek, ascending);
 		}
 		// sort is inplace but need to re-assign to trigger re-render
-		leaguePlayers = leaguePlayers
-	};
-		
-		
+		leaguePlayers = leaguePlayers;
+	}
 
 	$: {
 		if (intervalId === null && anyActiveGames()) {
@@ -214,7 +219,7 @@
 			<div>
 				<button
 					on:click={async () => await update()}
-					class="btn w-16 text-center rounded-lg variant-filled-surface">Update</button
+					class="btn w-16 text-center rounded-lg variant-filled-secondary">Update</button
 				>
 			</div>
 		</TabGroup>
@@ -229,27 +234,34 @@
 			<thead>
 				<tr>
 					<th>
-						<div class="grid grid-colums-1 items-center justify-center space-y-2 place-items-center">
-							<div class= "flex items-center align-middle">
-								<button class="btn w-fit text-center rounded-lg variant-filled-surface" on:click={cycleSort}>{sort}</button>
-								<button on:click={() => ascending = !ascending}>
-									{#if sort === "A-Z"}
+						<div
+							class="grid grid-colums-1 items-center justify-center space-y-2 place-items-center"
+						>
+							<div class="flex items-center align-middle">
+								<button
+									class="btn w-fit text-center rounded-lg variant-filled-secondary"
+									on:click={cycleSort}>{sort}</button
+								>
+								<button on:click={() => (ascending = !ascending)}>
+									{#if sort === 'A-Z'}
 										{#if ascending}
 											<ArrowDownAZIcon></ArrowDownAZIcon>
 										{:else}
 											<ArrowDownZaIcon></ArrowDownZaIcon>
 										{/if}
-									{:else if ["Week", "Total"].includes(sort)}
+									{:else if ['Week', 'Total'].includes(sort)}
 										{#if ascending}
 											<ArrowDown01Icon></ArrowDown01Icon>
 										{:else}
 											<ArrowDown10Icon></ArrowDown10Icon>
 										{/if}
-									{/if}	
+									{/if}
 								</button>
-								
 							</div>
-							<button class="btn w-full text-center rounded-lg variant-filled-surface" on:click={() => hiddenPlayers = []}>Reset</button>
+							<button
+								class="btn w-full text-center rounded-lg variant-filled-secondary"
+								on:click={() => (hiddenPlayers = [])}>Reset</button
+							>
 						</div>
 					</th>
 					{#each weeks[selectedWeek].games as game (game.id)}
@@ -350,8 +362,8 @@
 						<tr>
 							<th>
 								<div class="flex gap-x-2 items-center justify-center">
-									<button on:click={() => hiddenPlayers = [...hiddenPlayers, player.id]}>
-										<XIcon size={20} color="black" class="border border-black"/>
+									<button on:click={() => (hiddenPlayers = [...hiddenPlayers, player.id])}>
+										<XIcon size={20} color="black" class="border border-black" />
 									</button>
 									<p>{player.name}</p>
 								</div>
@@ -385,8 +397,9 @@
 													<CheckIcon size={24} color="green" />
 													{#if league.spreadGames.includes(game.id)}
 														<span class="ml-1 text-xs"
-															>(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[game.id] -
-																1})</span
+															>(+{playersWeeklyScores[player.id][selectedWeek].gamesScores[
+																game.id
+															] - 1})</span
 														>
 													{/if}
 												{/if}
