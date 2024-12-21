@@ -15,7 +15,8 @@
 	initializeStores();
 
 	const defaultDarkMode = true;
-	const defaultTheme = 'patriots';
+	// make sure the spelling is correct including capitalization
+	const defaultTheme = 'Patriots';
 
 	let modalOpen = false;
 
