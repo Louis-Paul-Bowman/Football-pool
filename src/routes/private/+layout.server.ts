@@ -14,12 +14,14 @@ import { PROTO, VERCEL_PROJECT_PRODUCTION_URL } from '$env/static/private';
 
 export const load = (async ({ locals: { user } }) => {
 	const maxAgeMins = 0.5;
+	//updating flexed games for inactive weeks
+	const forceRefreshNextWeek = true;
 
 	if (user === null) {
 		return error(403, 'Forbidden');
 	}
 
-	let playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
+	let playerLeaguesData = await getUserLeaguesData(user, maxAgeMins, forceRefreshNextWeek);
 
 	if (playerLeaguesData.length === 0) {
 		//register user in league?
@@ -29,7 +31,7 @@ export const load = (async ({ locals: { user } }) => {
 			league: 1,
 			paid: true
 		});
-		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
+		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins, forceRefreshNextWeek);
 	}
 
 	if (playerLeaguesData.length > 1) {

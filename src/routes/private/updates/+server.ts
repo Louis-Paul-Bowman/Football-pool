@@ -8,6 +8,8 @@ import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 	const maxAgeMins = 0.5;
+	//updating flexed games for inactive weeks, currently handled by the root +layout.server.ts call
+	const forceRefreshNextWeek = false;
 	let leagueId: number | string | null = url.searchParams.get('leagueId');
 
 	if (leagueId === null) {
@@ -20,7 +22,7 @@ export const GET: RequestHandler = async ({ url, locals: { user } }) => {
 		return error(403, 'Forbidden');
 	}
 
-	const playerLeaguesData = await getUserLeaguesData(user, maxAgeMins);
+	const playerLeaguesData = await getUserLeaguesData(user, maxAgeMins, forceRefreshNextWeek);
 	const playerLeagueData = playerLeaguesData.find(
 		(playerLeagueData) => playerLeagueData.league.id === leagueId
 	);

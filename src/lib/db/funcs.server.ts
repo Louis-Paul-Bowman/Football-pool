@@ -20,8 +20,8 @@ export interface GameUpdate {
 	active?: typeof games.$inferInsert.active;
 	final?: typeof games.$inferInsert.final;
 	date?: typeof games.$inferInsert.date;
-    home?: typeof games.$inferInsert.home;
-    away?: typeof games.$inferInsert.away;
+	home?: typeof games.$inferInsert.home;
+	away?: typeof games.$inferInsert.away;
 }
 
 const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpdate[]) => {
@@ -34,12 +34,10 @@ const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpd
 			if (columnName === 'updated' && update.updated instanceof Date) {
 				// Convert Date to ISO8601 string
 				value = sql`${update.updated.toISOString()}`;
-			} 
-			else if (columnName === 'date' && update.date instanceof Date) {
+			} else if (columnName === 'date' && update.date instanceof Date) {
 				// Convert Date to ISO8601 string
 				value = sql`${update.date.toISOString()}`;
-			}
-			else {
+			} else {
 				value = sql`${update[columnName]}`;
 			}
 
@@ -50,8 +48,7 @@ const createGamesCaseStatement = (columnName: keyof GameUpdate, updates: GameUpd
 				value = sql`cast(${value} as boolean)`;
 			} else if (['updated', 'date'].includes(columnName)) {
 				value = sql`cast(${value} as timestamp)`;
-			}
-			else if (['home', 'away'].includes(columnName)) {
+			} else if (['home', 'away'].includes(columnName)) {
 				value = sql`cast(${value} as "teamIdsEnum")`;
 			}
 
@@ -74,9 +71,9 @@ export async function updateMultipleGames(
 	const awayScoreCase = createGamesCaseStatement('awayScore', updates);
 	const activeCase = createGamesCaseStatement('active', updates);
 	const finalCase = createGamesCaseStatement('final', updates);
-	const dateCase = createGamesCaseStatement("date", updates)
-	const homeCase = createGamesCaseStatement("home", updates)
-	const awayCase = createGamesCaseStatement("away", updates)
+	const dateCase = createGamesCaseStatement('date', updates);
+	const homeCase = createGamesCaseStatement('home', updates);
+	const awayCase = createGamesCaseStatement('away', updates);
 
 	const ids = updates.map((update) => update.id);
 
@@ -89,8 +86,8 @@ export async function updateMultipleGames(
 			final: finalCase,
 			updated: updatedCase,
 			date: dateCase,
-			home:homeCase,
-			away:awayCase
+			home: homeCase,
+			away: awayCase
 		})
 		.where(inArray(games.id, ids))
 		.returning();
@@ -100,7 +97,8 @@ export async function updateMultipleGames(
 export function weeksNeedingUpdate(
 	gamesData: (typeof games.$inferSelect)[],
 	currentWeek: number,
-	maxAgeMins: number
+	maxAgeMins: number,
+	forceRefreshNextWeek: boolean = false
 ): number[] {
 	let weeksToUpdate: number[] = [];
 	let unflattenedWeeks = unflattenWeeks(gamesData);
@@ -108,6 +106,11 @@ export function weeksNeedingUpdate(
 		data.forEach((game) => {
 			let weekNum = Number(week); //shut up typescript
 			if (weeksToUpdate.includes(weekNum)) {
+				return;
+			}
+			//updating flexed games for inactive weeks
+			if (forceRefreshNextWeek && game.week === currentWeek + 1) {
+				weeksToUpdate.push(weekNum);
 				return;
 			}
 			if (game.final) {
@@ -156,7 +159,11 @@ async function getUpdates(league: typeof leagues.$inferSelect, weeksToUpdate: nu
 	return updates;
 }
 
-export async function updateLeagueData(league: typeof leagues.$inferSelect, maxAgeMins: number) {
+export async function updateLeagueData(
+	league: typeof leagues.$inferSelect,
+	maxAgeMins: number,
+	forceRefreshNextWeek: boolean = false
+) {
 	let gamesData = await db
 		.select()
 		.from(games)
@@ -166,7 +173,7 @@ export async function updateLeagueData(league: typeof leagues.$inferSelect, maxA
 		throw new Error('Not an active league');
 	}
 	//Figure out what DB data needs to be updated in the DB
-	let weeksToUpdate = weeksNeedingUpdate(gamesData, currentWeek, maxAgeMins);
+	let weeksToUpdate = weeksNeedingUpdate(gamesData, currentWeek, maxAgeMins, forceRefreshNextWeek);
 
 	//Apply updates to DB
 	let updates = await getUpdates(league, weeksToUpdate);
@@ -238,7 +245,8 @@ export async function updateMultiplePicks(
 
 export async function getUserLeaguesData(
 	user: User,
-	maxAgeMins: number
+	maxAgeMins: number,
+	forceRefreshNextWeek: boolean = false
 ): Promise<PlayerLeagueData[]> {
 	let data: PlayerLeagueData[] = [];
 	let now = new Date(Date.now());
@@ -257,7 +265,7 @@ export async function getUserLeaguesData(
 		);
 
 	for await (const { player, league } of userActiveLeagues) {
-		await updateLeagueData(league, maxAgeMins);
+		await updateLeagueData(league, maxAgeMins, forceRefreshNextWeek);
 		let gamesData = await db
 			.select({ ...rest, pick: picks.pick, spread: picks.spread })
 			.from(games)
