@@ -167,21 +167,33 @@
 		</svelte:fragment>
 		<!-- Modal -->
 		{#if modalOpen}
-			<div class="fixed inset-0 bg-black bg-opacity-25 flex justify-center items-center">
-				<div class="card card-body border-0 p-5 rounded shadow-lg max-h-[80vh] overflow-y-auto">
-					<div class="grid grid-cols-4 gap-4">
-						{#each themes as theme, index}
-							<button
-								on:click={() => {
-									currentTheme = theme;
-									modalOpen = false;
-								}}
-								class="btn variant-ghost-secondary w-full"
-							>
-								{theme}
-							</button>
-						{/each}
-					</div>
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div
+				class="fixed inset-0 z-50 bg-black bg-opacity-25 flex justify-center items-center"
+				on:click={(event) => {
+				if (event.target === event.currentTarget) {
+					modalOpen = false;
+				}
+				}}
+			>
+				<div 
+				class="card card-body border-0 p-5 rounded shadow-lg max-h-[80vh] overflow-y-auto bg-white"
+				on:click|stopPropagation
+				>
+				<div class="grid grid-cols-4 gap-4">
+					{#each themes as theme}
+					<button
+						on:click={() => {
+						currentTheme = theme;
+						modalOpen = false;
+						}}
+						class="btn variant-ghost-secondary w-full"
+					>
+						{theme}
+					</button>
+					{/each}
+				</div>
 				</div>
 			</div>
 		{/if}
