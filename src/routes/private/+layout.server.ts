@@ -13,6 +13,7 @@ import { getCurrentWeek } from '$lib/api';
 import { PROTO, VERCEL_PROJECT_PRODUCTION_URL } from '$env/static/private';
 
 export const load = (async ({ locals: { user } }) => {
+	const currentLeague = 2;
 	const maxAgeMins = 0.5;
 	//updating flexed games for inactive weeks
 	const forceRefreshNextWeek = true;
@@ -28,8 +29,8 @@ export const load = (async ({ locals: { user } }) => {
 		await db.insert(players).values({
 			accountUUID: user.id,
 			name: user.user_metadata.display_name,
-			league: 1,
-			paid: true
+			league: currentLeague,
+			paid: false
 		});
 		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins, forceRefreshNextWeek);
 	}

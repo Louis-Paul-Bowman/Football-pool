@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
 	import { formatDate, selectable } from '$lib/helpers.js';
@@ -11,6 +10,8 @@
 		ArrowDown01Icon,
 		ArrowDown10Icon
 	} from 'lucide-svelte';
+	import lodash from 'lodash';
+	const { isEmpty } = lodash;
 
 	export let data;
 
@@ -210,7 +211,7 @@
 	}
 </script>
 
-{#if weeks}
+{#if !isEmpty(displayableWeeks)}
 	<div>
 		<TabGroup justify="justify-center">
 			{#each Object.keys(displayableWeeks) as week}
@@ -416,4 +417,6 @@
 			</tbody>
 		</table>
 	</div>
+{:else}
+	<h1>No picks are available to show yet. Come back later!</h1>
 {/if}

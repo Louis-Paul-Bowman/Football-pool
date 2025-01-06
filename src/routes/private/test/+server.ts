@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit';
 import { weeksNeedingUpdate, getUserLeaguesData, updateLeagueData } from '$lib/db/funcs.server';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/+schema';
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, eq, gte, lte, getTableColumns } from 'drizzle-orm';
 import { getCurrentWeek } from '$lib/api';
 import { games } from '$lib/db/schemas/games/schema';
 import { unflattenWeeks } from '$lib/helpers';
@@ -70,27 +70,29 @@ async function makePicks(
 }
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
-	let p: { p: keyof typeof team2id; s?: number }[] = [
-		{ p: 'Lions' },
-		{ p: 'Dolphins' },
-		{ p: 'Vikings' },
-		{ p: 'Saints' },
-		{ p: 'Eagles', s: 13 },
-		{ p: 'Steelers', s: 10 },
-		{ p: 'Buccaneers' },
-		{ p: 'Titans' },
-		{ p: 'Cardinals' },
-		{ p: 'Bills', s: 8 },
-		{ p: '49ers' },
-		{ p: 'Chiefs' },
-		{ p: 'Cowboys' }
-	];
-	let playerId = 19;
-	let league = 1;
-	let week = 14;
-	let data = await makePicks(p, playerId, league, week);
+	// let p: { p: keyof typeof team2id; s?: number }[] = [
+	// 	{ p: 'Lions' },
+	// 	{ p: 'Dolphins' },
+	// 	{ p: 'Vikings' },
+	// 	{ p: 'Saints' },
+	// 	{ p: 'Eagles', s: 13 },
+	// 	{ p: 'Steelers', s: 10 },
+	// 	{ p: 'Buccaneers' },
+	// 	{ p: 'Titans' },
+	// 	{ p: 'Cardinals' },
+	// 	{ p: 'Bills', s: 8 },
+	// 	{ p: '49ers' },
+	// 	{ p: 'Chiefs' },
+	// 	{ p: 'Cowboys' }
+	// ];
+	// let playerId = 19;
+	// let league = 1;
+	// let week = 14;
+	// let data = await makePicks(p, playerId, league, week);
 
 	// await db.insert(picks).values(data)
+
+	let data = (await db.select().from(games).where(eq(games.seasonType, 3))).map((game) => game.id);
 
 	return json(data);
 };

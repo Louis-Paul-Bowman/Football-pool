@@ -23,6 +23,7 @@
 		let gameIds = weeks[selectedWeek].games.map((game) => game.id);
 		let unselected: string[] = [];
 		let badSpreads: string[] = [];
+		let placeholdersSelected: string[] = [];
 		let selections: Selections = {};
 
 		gameIds.forEach((id) => {
@@ -41,12 +42,8 @@
 				unselected.push(gameComponent.name);
 				return;
 			}
-			if (selected === '-1' || selected === '-2') {
-				toastStore.trigger({
-					message: "Can't pick placeholder team. Ignoring.",
-					timeout: 3000,
-					background: 'variant-filled-error'
-				});
+			if (selected === '-1' || selected === '-2'|| selected === '31'|| selected === '32') {
+				placeholdersSelected.push(gameComponent.name)
 				return;
 			}
 			if (gameComponent.isSpread && spread === null) {
@@ -56,9 +53,12 @@
 			selections[id] = { selected, spread };
 		});
 
-		if (unselected.length > 0 || badSpreads.length > 0) {
-			let errorMsg: string = '';
+		let errorMsg: string = '';
+		if (placeholdersSelected.length > 0){
+			errorMsg += "Can't select placeholder teams. Please refresh the page to see if the placeholder has been updated to the actual team. "
+		}
 
+		if (unselected.length > 0 || badSpreads.length > 0) {
 			if (unselected.length > 0) {
 				errorMsg += `Please select a team for the following games: ${unselected.join(', ')}.`;
 			}
@@ -67,8 +67,9 @@
 				errorMsg += `Please select a spread for the following games: ${badSpreads.join(', ')}.`;
 			}
 
-			errorMsg += 'Make sure you scroll to the bottom!';
-
+			errorMsg += 'Make sure you scroll to the bottom!';	
+		}
+		if (errorMsg.length > 0 ) {
 			toastStore.trigger({
 				message: errorMsg,
 				timeout: 15000,
