@@ -9,14 +9,12 @@
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 
+	import { defaultDarkMode, defaultTheme } from '$lib/globals';
+
 	export let data;
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	initializeStores();
-
-	const defaultDarkMode = true;
-	// make sure the spelling is correct including capitalization
-	const defaultTheme = 'Patriots';
 
 	let modalOpen = false;
 

@@ -4,6 +4,8 @@ import { sequence } from '@sveltejs/kit/hooks';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
+import { defaultDarkMode } from '$lib/globals';
+
 const supabase: Handle = async ({ event, resolve }) => {
 	/**
 	 * Creates a Supabase client specific to this server request.
@@ -91,7 +93,9 @@ const authGuard: Handle = async ({ event, resolve }) => {
 };
 
 const SSRDarkMode: Handle = async ({ event, resolve }) => {
-	const darkModeSelected = event.cookies.get('darkMode') === 'true';
+	const darkModeCookie = event.cookies.get('darkMode');
+	const darkModeSelected = darkModeCookie ? darkModeCookie === 'true' : defaultDarkMode;
+
 	const darkMode = darkModeSelected ? 'dark' : '';
 	// Replace the placeholder with the actual attributes
 	const response = await resolve(event, {
