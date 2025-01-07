@@ -62,7 +62,11 @@
 		'brady_rings.jpg',
 		// "brady_goat.webp",
 		'taylor.jpg',
-		'josh_potato.png'
+		'josh_potato.png',
+		"campbell_teeth.png",
+		"sexy_bates.png",
+		"kc_ref.png",
+		"double_doink.webp"
 	];
 	let darkMode = data.darkMode ?? defaultDarkMode;
 	let currentTheme = data.theme !== null && themes.includes(data.theme) ? data.theme : defaultTheme;
