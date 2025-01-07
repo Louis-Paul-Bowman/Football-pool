@@ -5,6 +5,7 @@
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import Game from '$lib/components/game.svelte';
 	import type { Selections } from '$lib/api.js';
+	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -122,6 +123,9 @@
 		}
 		({ league, weeks, currentWeek } = await resp.json());
 	}
+
+	onMount(update)
+
 	$: maxWeek = Math.min(currentWeek + 1, Math.max(...Object.keys(weeks).map(Number)));
 </script>
 

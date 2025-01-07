@@ -11,6 +11,7 @@
 		ArrowDown10Icon
 	} from 'lucide-svelte';
 	import lodash from 'lodash';
+	import { onMount } from 'svelte';
 	const { isEmpty } = lodash;
 
 	export let data;
@@ -182,6 +183,8 @@
 			return ascending ? result : -result;
 		});
 	}
+	
+	onMount(update)
 
 	$: {
 		if (sort === 'A-Z') {

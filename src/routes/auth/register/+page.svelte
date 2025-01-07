@@ -60,7 +60,7 @@
 					/>
 				</label>
 				<label class="label block">
-					<span>Password</span>
+					<span>Password (Minimum 6 characters)</span>
 					<span class="flex w-full items-center gap-2">
 						<input
 							bind:value={password}
