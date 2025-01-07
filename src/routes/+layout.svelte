@@ -109,10 +109,10 @@
 	<AppShell scrollbarGutter="stable" data-theme={currentTheme}>
 		<svelte:fragment slot="header">
 			<div class="px-4 py-2 flex flex-wrap justify-between items-center bg-surface-100-800-token">
-				<div class="flex flex-wrap ">
+				<div class="flex flex-wrap">
 					<div class="flex space-x-3 items-center">
 						<!-- <strong class="text-xl uppercase">Football</strong> -->
-						<button class="btn btn-sm variant-ghost-secondary" on:click={toggleDarkMode}>
+						<button class="btn btn-sm variant-ghost-secondary w-fit h-full" on:click={toggleDarkMode}>
 							{#if darkMode}
 								<svg viewBox="0 0 24 24" class="w-6 h-6">
 									<path
@@ -131,7 +131,7 @@
 							{/if}
 						</button>
 						<button
-							class="btn btn-sm variant-ghost-secondary"
+							class="btn btn-sm variant-ghost-secondary w-fit h-full"
 							on:click={() => (modalOpen = !modalOpen)}
 						>
 							Theme
@@ -148,15 +148,15 @@
 						</div>
 					{/if}
 				</div>
-				<div class="flex flex-wrap ">
+				<div class="flex flex-wrap">
 					<div class="flex-grow flex items-center justify-end space-x-3">
 						{#if data.user !== null}
 							<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
-							<button on:click={cycleProfilePicture}>
+							<button on:click={cycleProfilePicture} class="hidden md:block">
 								<Avatar src={`/img/avatar/${avatar}`}></Avatar>
 							</button>
 							<form class="" method="post" action="/?/logout">
-								<button class="btn w-16 text-center rounded-lg variant-outline-secondary"
+								<button class="btn btn-sm variant-ghost-secondary w-fit h-full"
 									>Logout</button
 								>
 							</form>
