@@ -367,7 +367,7 @@
 							<th>
 								<div class="flex gap-x-2 items-center justify-center">
 									<button on:click={() => (hiddenPlayers = [...hiddenPlayers, player.id])}>
-										<XIcon size={20} color="black" class="border border-black" />
+										<XIcon size={20} class="border border-black variant-ringed-secondary" />
 									</button>
 									<p>{player.name}</p>
 								</div>
