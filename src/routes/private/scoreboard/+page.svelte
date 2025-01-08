@@ -214,6 +214,13 @@
 	}
 </script>
 
+<style>
+	/* Using the skeleton / TW table style seems to invalidate just adding "p-0" so gotta do it like this */
+	.no-padding {
+	  padding: 2px; 
+	}
+  </style>
+
 {#if !isEmpty(displayableWeeks)}
 	<div>
 		<TabGroup justify="justify-center">
@@ -233,8 +240,8 @@
 		<p>Updated: {formatDate(lastUpdated)}</p>
 	</div>
 
-	<div class="table-container">
-		<table class="table table-hover text-center">
+	<div class="table-container overflow-x-auto">
+		<table class="table table-hover text-center min-w-full">
 			<thead>
 				<tr>
 					<th>
@@ -270,8 +277,8 @@
 					</th>
 					{#each weeks[selectedWeek].games as game (game.id)}
 						<!-- <th>{getTitle(game)}</th> -->
-						<th>
-							<div class="grid grid-rows-3 items-center justify-center text-center">
+						<th class="no-padding">
+							<div class="flex flex-col space-y-2 items-center justify-center text-center">
 								<img
 									src="/img/logos/svg/{game.away}.svg"
 									alt="{teams[game.away]} logo"
