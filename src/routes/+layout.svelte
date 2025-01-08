@@ -138,22 +138,26 @@
 						</button>
 					</div>
 				</div>
-				<div class="flex flex-wrap ">
-					{#if data.user !== null}
-						<div class="flex-grow flex items-center justify-center">
-							<div class="flex items-center justify-center gap-x-8">
-								<a href="/private">Picks</a>
-								<a href="/private/scoreboard">Scoreboard</a>
-							</div>
-						</div>
-					{/if}
-				</div>
+				{#if data.user !== null}
+					<div class="items-center justify-center px-4 space-x-2 hidden md:flex md:flex-grow">
+						<a href="/private" class="w-1/2 flex justify-end items-end">
+							<button class="w-1/2 btn btn-sm variant-filled-surface border-secondary-500 border-2 h-full rounded-none font-bold max-w-48">
+								Picks
+							</button>
+						</a>
+						<a href="/private/scoreboard" class="w-1/2 flex justify-start items-start">
+							<button class="w-1/2 btn btn-sm variant-filled-surface border-secondary-500 border-2 h-full rounded-none font-bold max-w-48">
+								Scoreboard
+							</button>
+						</a>
+					</div>
+				{/if}
 				<div class="flex flex-wrap">
 					<div class="flex-grow flex items-center justify-end space-x-3">
 						{#if data.user !== null}
 							<p>{data.user.user_metadata.display_name ?? 'No display name set.'}</p>
-							<button on:click={cycleProfilePicture} class="hidden md:block">
-								<Avatar src={`/img/avatar/${avatar}`}></Avatar>
+							<button on:click={cycleProfilePicture} >
+								<Avatar src={`/img/avatar/${avatar}`} width=w-12 class="border-secondary-500 border-2"></Avatar>
 							</button>
 							<form class="" method="post" action="/?/logout">
 								<button class="btn btn-sm variant-ghost-secondary w-fit h-full"
@@ -166,6 +170,20 @@
 					</div>
 				</div>
 			</div>
+			{#if data.user !== null}
+				<div class="flex items-center justify-center px-4 space-x-2 pb-2 md:hidden">
+					<a href="/private" class="w-1/2">
+						<button class="w-full btn btn-sm variant-filled-surface border-secondary-500 border-2 h-full rounded-none font-bold min-w-fit">
+							Picks
+						</button>
+					</a>
+					<a href="/private/scoreboard" class="w-1/2">
+						<button class="w-full btn btn-sm variant-filled-surface border-secondary-500 border-2 h-full rounded-none font-bold min-w-fit">
+							Scoreboard
+						</button>
+					</a>
+				</div>
+			{/if}
 		</svelte:fragment>
 		<!-- Modal -->
 		{#if modalOpen}
