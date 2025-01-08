@@ -1,6 +1,9 @@
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { LayoutLoad } from './$types';
+import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
+
+injectSpeedInsights();
 
 export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	/**
@@ -43,18 +46,12 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		data: { user }
 	} = await supabase.auth.getUser();
 
-	
 	return {
 		session,
 		supabase,
 		user,
 		avatar: avatarCookie === undefined ? null : avatarCookie.value,
-		darkMode:
-			darkModeCookie === undefined
-				? null
-				: darkModeCookie.value === 'true'
-					? true
-					: false,
+		darkMode: darkModeCookie === undefined ? null : darkModeCookie.value === 'true' ? true : false,
 		theme: themeCookie === undefined ? null : themeCookie.value
 	};
 };

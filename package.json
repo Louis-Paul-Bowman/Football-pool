@@ -48,6 +48,7 @@
 		"@supabase/supabase-js": "^2.45.6",
 		"@sveltejs/adapter-vercel": "^5.4.7",
 		"@types/lodash": "^4.17.14",
+		"@vercel/speed-insights": "^1.1.0",
 		"dotenv": "^16.4.5",
 		"drizzle-orm": "^0.35.3",
 		"lodash": "^4.17.21",
