@@ -32,6 +32,8 @@ export const validTeamIds = [
 	'28',
 	'29',
 	'30',
+	'31',
+	'32',
 	'33',
 	'34'
 ] as const;
@@ -39,7 +41,7 @@ export const validTeamIds = [
 export const ValidTeamIdsSchema = z.enum(validTeamIds);
 export type ValidTeamIds = z.infer<typeof ValidTeamIdsSchema>;
 
-export const teamIds = [...validTeamIds, '-1', '-2', '31', '32'] as const;
+export const teamIds = [...validTeamIds, '-1', '-2'] as const;
 
 export const TeamIdsSchema = z.enum(teamIds);
 export type TeamIds = z.infer<typeof TeamIdsSchema>;
@@ -47,8 +49,6 @@ export type TeamIds = z.infer<typeof TeamIdsSchema>;
 export const teams: Record<TeamIds, string> = {
 	'-2': 'TBD',
 	'-1': 'TBD',
-	'31': 'AFC',
-	'32': 'NFC',
 	'1': 'Falcons',
 	'2': 'Bills',
 	'3': 'Bears',
@@ -79,6 +79,8 @@ export const teams: Record<TeamIds, string> = {
 	'28': 'Commanders',
 	'29': 'Panthers',
 	'30': 'Jaguars',
+	'31': 'AFC',
+	'32': 'NFC',
 	'33': 'Ravens',
 	'34': 'Texans'
 };

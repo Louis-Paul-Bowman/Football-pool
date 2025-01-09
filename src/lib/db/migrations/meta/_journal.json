@@ -43,6 +43,13 @@
       "when": 1736174679695,
       "tag": "0005_confused_luckman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1736400790581,
+      "tag": "0006_secret_nighthawk",
+      "breakpoints": true
     }
   ]
 }

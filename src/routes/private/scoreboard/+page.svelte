@@ -61,7 +61,7 @@
 				let gamesScores: Record<string, number> = {};
 				let weekScore = 0;
 				weekData.games.forEach((game) => {
-					let gameScore = scoreGame(game, gamePicks[game.id][player.id]);
+					let gameScore = scoreGame(game, gamePicks[game.id][player.id], league.seasonType);
 					gamesScores[game.id] = gameScore;
 					weekScore += gameScore;
 					cumulative += gameScore;
@@ -78,8 +78,10 @@
 
 	function scoreGame(
 		game: (typeof weeks)[number]['games'][number],
-		pick: (typeof gamePicks)[string][number] | undefined
+		pick: (typeof gamePicks)[string][number] | undefined,
+		seasonType: typeof league.seasonType
 	) {
+		
 		// Player didn't make a pick
 		if (pick === undefined) {
 			return 0;
@@ -96,7 +98,15 @@
 			return pick.pick === winner ? 1 : 0;
 		}
 
-		return pick.pick === winner ? 1 + scoreSpread(spread, pick.spread) : 0;
+		//Spread game
+		let score = pick.pick === winner ? 1 + scoreSpread(spread, pick.spread) : 0;
+
+		//Superbowl is double points (and always a spread game)
+		if (seasonType === 3 && game.week === 5) {
+			score = score * 2
+		}
+
+		return score
 	}
 
 	function scoreSpread(gameSpread: number, selectedSpread: number | null) {

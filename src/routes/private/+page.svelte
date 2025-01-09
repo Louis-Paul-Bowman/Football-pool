@@ -43,7 +43,7 @@
 				unselected.push(gameComponent.name);
 				return;
 			}
-			if (selected === '-1' || selected === '-2'|| selected === '31'|| selected === '32') {
+			if (selected === '-1' || selected === '-2') {
 				placeholdersSelected.push(gameComponent.name)
 				return;
 			}
