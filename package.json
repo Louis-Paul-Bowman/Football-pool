@@ -51,6 +51,7 @@
 		"@vercel/speed-insights": "^1.1.0",
 		"dotenv": "^16.4.5",
 		"drizzle-orm": "^0.35.3",
+		"esm-env": "^1.2.2",
 		"lodash": "^4.17.21",
 		"lucide-svelte": "^0.453.0",
 		"postgres": "^3.4.5",
