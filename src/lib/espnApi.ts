@@ -85,6 +85,41 @@ export const teams: Record<TeamIds, string> = {
 	'34': 'Texans'
 };
 
+export const team2id: Record<(typeof teams)[ValidTeamIds], ValidTeamIds> = {
+	Falcons: '1',
+	Bills: '2',
+	Bears: '3',
+	Bengals: '4',
+	Browns: '5',
+	Cowboys: '6',
+	Broncos: '7',
+	Lions: '8',
+	Packers: '9',
+	Titans: '10',
+	Colts: '11',
+	Chiefs: '12',
+	Raiders: '13',
+	Rams: '14',
+	Dolphins: '15',
+	Vikings: '16',
+	Patriots: '17',
+	Saints: '18',
+	Giants: '19',
+	Jets: '20',
+	Eagles: '21',
+	Cardinals: '22',
+	Steelers: '23',
+	Chargers: '24',
+	'49ers': '25',
+	Seahawks: '26',
+	Buccaneers: '27',
+	Commanders: '28',
+	Panthers: '29',
+	Jaguars: '30',
+	Ravens: '33',
+	Texans: '34'
+} as const;
+
 //Zod no likey non-string enums
 export const seasonTypes = [1, 2, 3, 4] as const;
 export const SeasonTypesSchema = z.number().int().gte(1).lte(4);

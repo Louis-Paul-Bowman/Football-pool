@@ -3,73 +3,24 @@ import { error, json } from '@sveltejs/kit';
 import { weeksNeedingUpdate, getUserLeaguesData, updateLeagueData } from '$lib/db/funcs.server';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/+schema';
-import { and, eq, gte, lte, getTableColumns } from 'drizzle-orm';
+import { and, eq, gte, lte, getTableColumns, inArray } from 'drizzle-orm';
 import { getCurrentWeek } from '$lib/api';
 import { games } from '$lib/db/schemas/games/schema';
 import { unflattenWeeks } from '$lib/helpers';
 import { leagues } from '$lib/db/schemas/leagues/+schema';
 import { picks } from '$lib/db/schemas/picks/+schema';
-import { teams } from '$lib/espnApi';
-
-const team2id = {
-	Falcons: '1',
-	Bills: '2',
-	Bears: '3',
-	Bengals: '4',
-	Browns: '5',
-	Cowboys: '6',
-	Broncos: '7',
-	Lions: '8',
-	Packers: '9',
-	Titans: '10',
-	Colts: '11',
-	Chiefs: '12',
-	Raiders: '13',
-	Rams: '14',
-	Dolphins: '15',
-	Vikings: '16',
-	Patriots: '17',
-	Saints: '18',
-	Giants: '19',
-	Jets: '20',
-	Eagles: '21',
-	Cardinals: '22',
-	Steelers: '23',
-	Chargers: '24',
-	'49ers': '25',
-	Seahawks: '26',
-	Buccaneers: '27',
-	Commanders: '28',
-	Panthers: '29',
-	Jaguars: '30',
-	Ravens: '33',
-	Texans: '34'
-} as const;
-
-async function makePicks(
-	p: { p: keyof typeof team2id; s?: number }[],
-	playerId: number,
-	league: number,
-	week: number
-) {
-	let res: (typeof picks.$inferInsert)[] = [];
-
-	let weekGames = await db.select().from(games).where(eq(games.week, week));
-
-	p.forEach((pick) => {
-		let game = weekGames.find((game) => [game.home, game.away].includes(team2id[pick.p]));
-
-		if (game === undefined) {
-			throw new Error('No such game.');
-		}
-
-		let gameId = game.id;
-		res.push({ league, playerId, gameId, pick: team2id[pick.p], spread: pick.s ?? null });
-	});
-	return res;
-}
+import { teams, team2id } from '$lib/espnApi';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { SERVICE_ROLE_KEY, DB_ADMIN_UUID } from '$env/static/private';
+import lodash from 'lodash';
+const { orderBy } = lodash;
+import { missingPayment, missingPicks, makePicks } from '$lib/admin.server';
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
+	const whitelisted_ids = [DB_ADMIN_UUID];
+	if (!user || !whitelisted_ids.includes(user.id)) {
+		return error(403, 'Forbidden');
+	}
 	// let p: { p: keyof typeof team2id; s?: number }[] = [
 	// 	{ p: 'Lions' },
 	// 	{ p: 'Dolphins' },
@@ -92,7 +43,39 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 
 	// await db.insert(picks).values(data)
 
-	let data = (await db.select().from(games).where(eq(games.seasonType, 3))).map((game) => game.id);
+	// const supabase = createClient(PUBLIC_SUPABASE_URL, SERVICE_ROLE_KEY, {
+	// 	auth: {
+	// 		autoRefreshToken: false,
+	// 		persistSession: false
+	// 	}
+	// });
 
-	return json(data);
+	// let registered = await db.select().from(players).where(eq(players.league, 2));
+
+	// let infos = await Promise.all(
+	// 	ids.map(async (id) => {
+	// 		return (await supabase.auth.admin.getUserById(id)).data.user;
+	// 	})
+	// );
+	// registered = orderBy(registered, ['name'], ['asc']);
+
+	// let names = registered.map((u) => u.name);
+	let currentLeagueId = 2;
+	let currentWeek = 1;
+	let league = (await db.select().from(leagues).where(eq(leagues.id, currentLeagueId)))[0];
+	let missing = await missingPicks(league, currentWeek);
+	let unpaid = await missingPayment(league);
+
+	let allPlayers = await db.select().from(players).where(eq(players.league, league.id));
+
+	let good: string[] = [];
+	allPlayers.forEach((player) => {
+		if (!missing.includes(player.name) && !unpaid.includes(player.name)) {
+			good.push(player.name);
+		}
+	});
+
+	let state = { missing, unpaid, good };
+
+	return json(state);
 };

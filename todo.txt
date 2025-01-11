@@ -1,0 +1,4 @@
+pin table header and 1st col for better scrolling
+sort by picks
+email on no picks + cronjob
+flex games cronjob?
