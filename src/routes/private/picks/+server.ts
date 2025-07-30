@@ -1,11 +1,11 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db/db.server';
-import { players } from '$lib/db/schemas/players/+schema';
+import { players } from '$lib/db/schemas/players/schema';
 import { eq, and, lte, inArray } from 'drizzle-orm';
-import { leagues } from '$lib/db/schemas/leagues/+schema';
+import { leagues } from '$lib/db/schemas/leagues/schema';
 import { games } from '$lib/db/schemas/games/schema';
-import { picks } from '$lib/db/schemas/picks/+schema';
+import { picks } from '$lib/db/schemas/picks/schema';
 import { chronologicalSort, selectable } from '$lib/helpers';
 import { validateSelections } from '$lib/api';
 import { updateMultiplePicks, type PickUpdate } from '$lib/db/funcs.server';

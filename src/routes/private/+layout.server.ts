@@ -8,7 +8,7 @@ import type { LayoutServerLoad } from './$types';
 import { getUserLeaguesData } from '$lib/db/funcs.server';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/db/db.server';
-import { players } from '$lib/db/schemas/players/+schema';
+import { players } from '$lib/db/schemas/players/schema';
 import { getCurrentWeek } from '$lib/api';
 import { PROTO, VERCEL_PROJECT_PRODUCTION_URL } from '$env/static/private';
 

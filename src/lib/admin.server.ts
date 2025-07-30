@@ -1,8 +1,8 @@
 import { db } from './db/db.server';
-import { picks } from './db/schemas/picks/+schema';
+import { picks } from './db/schemas/picks/schema';
 import { games } from './db/schemas/games/schema';
-import { leagues } from './db/schemas/leagues/+schema';
-import { players } from './db/schemas/players/+schema';
+import { leagues } from './db/schemas/leagues/schema';
+import { players } from './db/schemas/players/schema';
 import { team2id } from './espnApi';
 import { eq, inArray, and } from 'drizzle-orm';
 import { createClient } from '@supabase/supabase-js';

@@ -1,5 +1,5 @@
 import { pgTable, serial, text, boolean, integer, unique } from 'drizzle-orm/pg-core';
-import { leagues } from '../leagues/+schema';
+import { leagues } from '../leagues/schema';
 
 export const players = pgTable(
 	'players',

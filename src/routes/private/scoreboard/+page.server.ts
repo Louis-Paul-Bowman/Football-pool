@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/db/db.server';
-import { players } from '$lib/db/schemas/players/+schema';
+import { players } from '$lib/db/schemas/players/schema';
 import { eq } from 'drizzle-orm';
 import { getGamePicks } from '$lib/db/funcs.server';
 

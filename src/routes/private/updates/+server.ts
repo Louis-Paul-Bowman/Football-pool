@@ -3,7 +3,7 @@ import { error, json } from '@sveltejs/kit';
 import { getUserLeaguesData, getGamePicks } from '$lib/db/funcs.server';
 import { getCurrentWeek } from '$lib/api';
 import { db } from '$lib/db/db.server';
-import { players } from '$lib/db/schemas/players/+schema';
+import { players } from '$lib/db/schemas/players/schema';
 import { eq } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ url, locals: { user } }) => {

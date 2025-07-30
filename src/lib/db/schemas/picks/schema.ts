@@ -1,6 +1,6 @@
 import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
-import { leagues } from '../leagues/+schema';
-import { players } from '../players/+schema';
+import { leagues } from '../leagues/schema';
+import { players } from '../players/schema';
 import { games, teamIdsEnum } from '../games/schema';
 
 export const picks = pgTable('picks', {

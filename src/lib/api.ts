@@ -1,10 +1,10 @@
 import { seasonWeeks, ValidTeamIdsSchema } from './espnApi';
 import type { EspnEvent, SeasonTypes, ValidTeamIds } from './espnApi';
 import { games } from './db/schemas/games/schema';
-import { players } from './db/schemas/players/+schema';
-import { picks } from './db/schemas/picks/+schema';
+import { players } from './db/schemas/players/schema';
+import { picks } from './db/schemas/picks/schema';
 import { byes } from './db/schemas/byes/schema';
-import { leagues } from './db/schemas/leagues/+schema';
+import { leagues } from './db/schemas/leagues/schema';
 import { z } from 'zod';
 
 export function EspnEventtoGame(event: EspnEvent, week: Number): typeof games.$inferInsert {

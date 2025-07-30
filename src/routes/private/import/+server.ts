@@ -14,7 +14,7 @@ import {
 import { error } from '@sveltejs/kit';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { EspnEventtoGame } from '$lib/api';
-import { leagues, type LeagueWeeks } from '$lib/db/schemas/leagues/+schema';
+import { leagues, type LeagueWeeks } from '$lib/db/schemas/leagues/schema';
 
 export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
