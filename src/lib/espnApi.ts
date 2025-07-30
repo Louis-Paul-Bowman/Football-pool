@@ -116,6 +116,8 @@ export const team2id: Record<(typeof teams)[ValidTeamIds], ValidTeamIds> = {
 	Commanders: '28',
 	Panthers: '29',
 	Jaguars: '30',
+	AFC: '31',
+	NFC: '32',
 	Ravens: '33',
 	Texans: '34'
 } as const;

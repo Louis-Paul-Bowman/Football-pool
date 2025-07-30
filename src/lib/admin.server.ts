@@ -79,3 +79,17 @@ export async function missingPayment(league: typeof leagues.$inferSelect) {
 	let names = unpaidPlayers.map((player) => player.name);
 	return names;
 }
+
+export async function getAllEmails(league: typeof leagues.$inferSelect) {
+	let registered = await db.select().from(players).where(eq(players.league, league.id));
+	let accountIds = registered.map((u) => u.accountUUID);
+	console.log(accountIds);
+
+	let userInfos = await Promise.all(
+		accountIds.map(async (id) => {
+			return (await adminClient.auth.admin.getUserById(id)).data.user;
+		})
+	);
+
+	return userInfos.map((u) => u?.email);
+}
