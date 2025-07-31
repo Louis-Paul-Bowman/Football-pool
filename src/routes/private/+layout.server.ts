@@ -5,7 +5,7 @@
  **/
 
 import type { LayoutServerLoad } from './$types';
-import { getUserLeaguesData } from '$lib/db/funcs.server';
+import { getUserLeaguesData, getUniqueLeague } from '$lib/db/funcs.server';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/schema';
@@ -13,7 +13,7 @@ import { getCurrentWeek } from '$lib/api';
 import { PROTO, VERCEL_PROJECT_PRODUCTION_URL } from '$env/static/private';
 
 export const load = (async ({ locals: { user } }) => {
-	const currentLeague = 2;
+	const currentLeague = await getUniqueLeague();
 	const maxAgeMins = 0.5;
 	//updating flexed games for inactive weeks
 	const forceRefreshNextWeek = true;
@@ -29,7 +29,7 @@ export const load = (async ({ locals: { user } }) => {
 		await db.insert(players).values({
 			accountUUID: user.id,
 			name: user.user_metadata.display_name,
-			league: currentLeague,
+			league: currentLeague.id,
 			paid: false
 		});
 		playerLeaguesData = await getUserLeaguesData(user, maxAgeMins, forceRefreshNextWeek);

@@ -281,7 +281,7 @@ export async function fetchScores(
 	}
 
 	const url = `${scoreURL}?${params}`;
-	console.log('Hitting ESPN API.');
+	// console.log('Hitting ESPN API.');
 	const resp = await fetch(url);
 	const respData = await resp.json();
 

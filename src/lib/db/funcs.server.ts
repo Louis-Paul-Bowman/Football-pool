@@ -178,7 +178,7 @@ export async function updateLeagueData(
 	//Apply updates to DB
 	let updates = await getUpdates(league, weeksToUpdate);
 	let affected = await updateMultipleGames(updates.flat());
-	console.log('Updated', affected.length, 'games');
+	// console.log('Updated', affected.length, 'games');
 	return affected;
 }
 
@@ -330,4 +330,24 @@ export async function getGamePicks(
 		}
 	});
 	return gamePicks;
+}
+
+export async function getActiveLeagues() {
+	let now = new Date(Date.now());
+	let activeLeagues = await db
+		.select()
+		.from(leagues)
+		.where(and(lte(leagues.start, now), gte(leagues.end, now)));
+	return activeLeagues;
+}
+
+export async function getUniqueLeague() {
+	let activeLeagues = await getActiveLeagues();
+	if (activeLeagues.length === 0) {
+		throw new Error('No active leagues.');
+	}
+	if (activeLeagues.length > 1) {
+		throw new Error('More than 1 active league.');
+	}
+	return activeLeagues[0];
 }

@@ -15,6 +15,7 @@ import { error } from '@sveltejs/kit';
 import { byes } from '$lib/db/schemas/byes/schema';
 import { EspnEventtoGame } from '$lib/api';
 import { leagues, type LeagueWeeks } from '$lib/db/schemas/leagues/schema';
+import { inArray } from 'drizzle-orm';
 
 export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
@@ -49,6 +50,12 @@ export const GET: RequestHandler = async ({ locals: { user }, url }) => {
 			);
 		}
 	}
+	console.log(games);
+	// let ids = gamesInserts.map((g) => g.id);
+	// console.log(ids);
+	// let conflicts = await db.select().from(games).where(inArray(games.id, ids));
+	// console.log(conflicts);
+	// return new Response('ok');
 	const insertedGames = await db.insert(games).values(gamesInserts).returning();
 	const insertedByes = await db.insert(byes).values(byesInserts).returning();
 
