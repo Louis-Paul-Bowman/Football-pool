@@ -93,3 +93,17 @@ export async function getAllEmails(league: typeof leagues.$inferSelect) {
 
 	return userInfos.map((u) => u?.email);
 }
+
+export async function updateDisplayName(userId: string, newName: string) {
+	const { error } = await adminClient.auth.admin.updateUserById(userId, {
+		user_metadata: {
+			display_name: newName
+		}
+	});
+
+	if (error) {
+		throw new Error(`Failed to update display name: ${error.message}`);
+	}
+
+	return;
+}

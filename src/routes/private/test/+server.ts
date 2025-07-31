@@ -1,6 +1,11 @@
 import type { RequestHandler } from './$types';
 import { error, json } from '@sveltejs/kit';
-import { weeksNeedingUpdate, getUserLeaguesData, updateLeagueData } from '$lib/db/funcs.server';
+import {
+	weeksNeedingUpdate,
+	getUserLeaguesData,
+	updateLeagueData,
+	getUniqueLeague
+} from '$lib/db/funcs.server';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/schema';
 import { and, eq, gte, lte, getTableColumns, inArray } from 'drizzle-orm';
@@ -14,7 +19,7 @@ import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SERVICE_ROLE_KEY, DB_ADMIN_UUID } from '$env/static/private';
 import lodash from 'lodash';
 const { orderBy } = lodash;
-import { missingPayment, missingPicks, makePicks } from '$lib/admin.server';
+import { missingPayment, missingPicks, makePicks, updateDisplayName } from '$lib/admin.server';
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
@@ -60,9 +65,8 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	// registered = orderBy(registered, ['name'], ['asc']);
 
 	// let names = registered.map((u) => u.name);
-	let currentLeagueId = 2;
+	let league = await getUniqueLeague();
 	let currentWeek = 1;
-	let league = (await db.select().from(leagues).where(eq(leagues.id, currentLeagueId)))[0];
 	let missing = await missingPicks(league, currentWeek);
 	let unpaid = await missingPayment(league);
 
@@ -77,5 +81,7 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 
 	let state = { missing, unpaid, good };
 
-	return json(state);
+	// await updateDisplayName('deb040f7-bb3c-4470-b053-1c2fd419ee06', 'Eric St.-G.');
+
+	return json({ ok: true });
 };
