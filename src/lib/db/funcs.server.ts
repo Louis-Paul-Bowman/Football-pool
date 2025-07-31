@@ -179,6 +179,7 @@ export async function updateLeagueData(
 	let updates = await getUpdates(league, weeksToUpdate);
 	let affected = await updateMultipleGames(updates.flat());
 	// console.log('Updated', affected.length, 'games');
+	//
 	return affected;
 }
 
