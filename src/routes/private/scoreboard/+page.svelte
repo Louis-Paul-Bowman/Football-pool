@@ -12,6 +12,7 @@
 	} from 'lucide-svelte';
 	import lodash from 'lodash';
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	const { isEmpty } = lodash;
 
 	export let data;
@@ -35,6 +36,17 @@
 	const sortOptions = ['A-Z', 'Week', 'Total'] as const;
 	let sort: (typeof sortOptions)[number] = 'A-Z';
 	let ascending: boolean = true;
+	
+	// Really weird bug where subscribing to the updates 
+	// in a reactive statement would run server-side even
+	// with isBrowserContext = false, so move that logic
+	// from reactive statement to onMount and button click.
+	let isMounted = false;
+
+	//paranoia
+	function isBrowserContext() {
+		return browser && typeof window !== 'undefined' && typeof document !== 'undefined' && isMounted
+	}
 
 	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
 		let winner =
@@ -132,6 +144,14 @@
 
 	async function update() {
 		// console.log("Update.")
+		
+		// This function crashes if we somehow try to run it server-side
+		// because auth headers don't get passed in by global fetch
+		// causing .json() to fail when we return the login page instead
+		if (!isBrowserContext()) {
+		// console.log('Update called outside browser context, skipping...');
+		return;
+		}
 
 		const url = `${proto}://${baseUrl}/private/updates?leagueId=${league.id}`;
 
@@ -193,8 +213,22 @@
 			return ascending ? result : -result;
 		});
 	}
+
+	function trySubscribe() {
+		if (isBrowserContext() && intervalId === null && anyActiveGames()) {
+			// if (isBrowserContext() && intervalId === null ) {
+
+			// console.log("Subscribe.")
+			intervalId = setInterval(update, updateTimeout);
+		}
+	}
+
 	
-	onMount(update)
+	onMount(() => {
+		isMounted = true
+		trySubscribe()
+		update
+	})
 
 	$: {
 		if (sort === 'A-Z') {
@@ -208,16 +242,10 @@
 		leaguePlayers = leaguePlayers;
 	}
 
-	$: {
-		if (intervalId === null && anyActiveGames()) {
-			// console.log("Subscribe.")
-			intervalId = setInterval(update, updateTimeout);
-		}
-	}
 
 	$: {
 		if (intervalId !== null && !anyActiveGames()) {
-			// console.log("Unsubscribe.")
+			console.log("Unsubscribe.")
 			clearInterval(intervalId);
 			intervalId = null;
 		}
@@ -239,7 +267,10 @@
 			{/each}
 			<div>
 				<button
-					on:click={async () => await update()}
+					on:click={async () => {
+						trySubscribe()
+						await update()
+					}}
 					class="btn w-16 text-center rounded-lg variant-filled-secondary">Update</button
 				>
 			</div>
