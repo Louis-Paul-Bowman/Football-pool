@@ -1,4 +1,4 @@
 export const defaultDarkMode = true;
 // make sure the spelling is correct including capitalization
 export const defaultTheme = 'Patriots';
-export const enablePublicSignup = false;
+export const enablePublicSignup = true;
