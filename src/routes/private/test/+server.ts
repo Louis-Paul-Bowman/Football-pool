@@ -19,13 +19,24 @@ import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SERVICE_ROLE_KEY, DB_ADMIN_UUID } from '$env/static/private';
 import lodash from 'lodash';
 const { orderBy } = lodash;
-import { missingPayment, missingPicks, makePicks, updateDisplayName } from '$lib/admin.server';
+import {
+	missingPayment,
+	missingPicks,
+	makePicks,
+	updateDisplayName,
+	getAllEmails
+} from '$lib/admin.server';
 
 export const GET: RequestHandler = async ({ locals: { user } }) => {
 	const whitelisted_ids = [DB_ADMIN_UUID];
 	if (!user || !whitelisted_ids.includes(user.id)) {
 		return error(403, 'Forbidden');
 	}
+
+	// let league2 = (await db.select().from(leagues).where(eq(leagues.id, 2)))[0];
+	// let emails = await getAllEmails(league2);
+	// return json(emails);
+
 	// let p: { p: keyof typeof team2id; s?: number }[] = [
 	// 	{ p: 'Lions' },
 	// 	{ p: 'Dolphins' },
@@ -72,6 +83,8 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 
 	let allPlayers = await db.select().from(players).where(eq(players.league, league.id));
 
+	let allNames = orderBy(allPlayers, (p) => p.name).map((p) => p.name);
+
 	let good: string[] = [];
 	allPlayers.forEach((player) => {
 		if (!missing.includes(player.name) && !unpaid.includes(player.name)) {
@@ -79,9 +92,11 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 		}
 	});
 
-	let state = { missing, unpaid, good };
+	let emails = await getAllEmails(league);
+
+	let state = { missing, unpaid, good, all: allNames, emails };
 
 	// await updateDisplayName('deb040f7-bb3c-4470-b053-1c2fd419ee06', 'Eric St.-G.');
 
-	return json({ ok: true });
+	return json(state);
 };
