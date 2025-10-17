@@ -4,7 +4,7 @@ import { games } from './db/schemas/games/schema';
 import { leagues } from './db/schemas/leagues/schema';
 import { players } from './db/schemas/players/schema';
 import { team2id } from './espnApi';
-import { eq, inArray, and } from 'drizzle-orm';
+import { eq, inArray, and, gte, lte } from 'drizzle-orm';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { SERVICE_ROLE_KEY } from '$env/static/private';
@@ -19,12 +19,17 @@ export const adminClient = createClient(PUBLIC_SUPABASE_URL, SERVICE_ROLE_KEY, {
 export async function makePicks(
 	p: { p: keyof typeof team2id; s?: number }[],
 	playerId: number,
-	league: number,
+	league: typeof leagues.$inferSelect,
 	week: number
 ) {
 	let res: (typeof picks.$inferInsert)[] = [];
 
-	let weekGames = await db.select().from(games).where(eq(games.week, week));
+	let weekStart = new Date(league.weeks[week].start)
+	let weekEnd = new Date(league.weeks[week].end)
+
+	let weekGames = await db.select().from(games).where(and(
+	gte(games.date, weekStart),
+	lte(games.date, weekEnd)));
 
 	p.forEach((pick) => {
 		let game = weekGames.find((game) => [game.home, game.away].includes(team2id[pick.p]));
@@ -34,7 +39,7 @@ export async function makePicks(
 		}
 
 		let gameId = game.id;
-		res.push({ league, playerId, gameId, pick: team2id[pick.p], spread: pick.s ?? null });
+		res.push({ league: league.id, playerId, gameId, pick: team2id[pick.p], spread: pick.s ?? null });
 	});
 	return res;
 }
