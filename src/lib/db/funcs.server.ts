@@ -131,7 +131,7 @@ export function weeksNeedingUpdate(
 	return weeksToUpdate;
 }
 
-async function getUpdates(league: typeof leagues.$inferSelect, weeksToUpdate: number[]) {
+export async function getUpdates(league: typeof leagues.$inferSelect, weeksToUpdate: number[]) {
 	let updates: GameUpdate[][] = await Promise.all(
 		weeksToUpdate.map(async (week) => {
 			let weekData: EspnScoreboardResponse;
@@ -313,6 +313,9 @@ export async function getGamePicks(
 	let leaguePicks = await db.select().from(picks).where(eq(picks.league, league.id));
 
 	for (const [weekNum, weekData] of Object.entries(weeks)) {
+		if (weekData.games.length === 0) {
+			continue;
+		}
 		if (selectable(weekData.games[0].date)) {
 			continue;
 		}

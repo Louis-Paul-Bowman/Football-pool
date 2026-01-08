@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { TabGroup, Tab, getToastStore } from '@skeletonlabs/skeleton';
 	import { teams } from '$lib/espnApi.js';
-	import { formatDate, selectable } from '$lib/helpers.js';
+	import { formatDate } from '$lib/helpers.js';
+	import { getDisplayableWeeks, scorePlayers } from '$lib/scoring.js';
 	import {
 		CheckIcon,
 		XIcon,
@@ -13,6 +14,7 @@
 	import lodash from 'lodash';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+
 	const { isEmpty } = lodash;
 
 	export let data;
@@ -22,16 +24,10 @@
 	let { gamePicks, weeks, currentWeek, leaguePlayers, league, baseUrl, proto } = data;
 	let lastUpdated = new Date(Date.now());
 	const updateTimeout = 1000 * 60;
-	let selectedWeek: number = currentWeek;
-	let displayableWeeks: typeof weeks = {};
-	for (const [weekNum, weekData] of Object.entries(weeks)) {
-		if (!selectable(weekData.games[0].date)) {
-			displayableWeeks[Number(weekNum)] = weekData;
-			selectedWeek = Number(weekNum);
-		}
-	}
 	let intervalId: NodeJS.Timeout | null = null;
-	let playersWeeklyScores = scorePlayers();
+	let selectedWeek: number = currentWeek;
+	let displayableWeeks = getDisplayableWeeks(weeks)
+	let playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
 	let hiddenPlayers: number[] = [];
 	const sortOptions = ['A-Z', 'Week', 'Total'] as const;
 	let sort: (typeof sortOptions)[number] = 'A-Z';
@@ -47,101 +43,7 @@
 	function isBrowserContext() {
 		return browser && typeof window !== 'undefined' && typeof document !== 'undefined' && isMounted
 	}
-
-	function getGameResult(game: (typeof weeks)[number]['games'][number]) {
-		let winner =
-			game.homeScore > game.awayScore
-				? game.home
-				: game.awayScore > game.homeScore
-					? game.away
-					: null;
-		let spread = Math.abs(game.homeScore - game.awayScore);
-		return { winner, spread };
-	}
-
-	type PlayersWeeklyScores = Record<
-		string,
-		Record<number, { gamesScores: Record<string, number>; week: number; cumulative: number }>
-	>;
-
-	function scorePlayers() {
-		let playersWeeklyScores: PlayersWeeklyScores = {};
-		leaguePlayers.forEach((player) => {
-			playersWeeklyScores[player.id] = {};
-			let cumulative = 0;
-			for (const [weekNum, weekData] of Object.entries(displayableWeeks)) {
-				let gamesScores: Record<string, number> = {};
-				let weekScore = 0;
-				weekData.games.forEach((game) => {
-					let gameScore = scoreGame(game, gamePicks[game.id][player.id], league.seasonType);
-					gamesScores[game.id] = gameScore;
-					weekScore += gameScore;
-					cumulative += gameScore;
-				});
-				playersWeeklyScores[player.id][Number(weekNum)] = {
-					gamesScores,
-					week: weekScore,
-					cumulative: cumulative
-				};
-			}
-		});
-		return playersWeeklyScores;
-	}
-
-	function scoreGame(
-		game: (typeof weeks)[number]['games'][number],
-		pick: (typeof gamePicks)[string][number] | undefined,
-		seasonType: typeof league.seasonType
-	) {
-		
-		// Player didn't make a pick
-		if (pick === undefined) {
-			return 0;
-		}
-		let { winner, spread } = getGameResult(game);
-
-		//Tie game
-		if (winner === null) {
-			return 0;
-		}
-
-		//Not a spread game
-		if (!league.spreadGames.includes(game.id)) {
-			return pick.pick === winner ? 1 : 0;
-		}
-
-		//Spread game
-		let score = pick.pick === winner ? 1 + scoreSpread(spread, pick.spread) : 0;
-
-		//Superbowl is double points (and always a spread game)
-		if (seasonType === 3 && game.week === 5) {
-			score = score * 2
-		}
-
-		return score
-	}
-
-	function scoreSpread(gameSpread: number, selectedSpread: number | null) {
-		//Player didn't select a spread
-		if (selectedSpread === null) {
-			return 0;
-		}
-		let diff = Math.abs(gameSpread - selectedSpread);
-		if (diff === 0) {
-			return 7;
-		}
-		if (diff <= 4) {
-			return 3;
-		}
-		if (diff <= 9) {
-			return 2;
-		}
-		if (diff <= 20) {
-			return 1;
-		}
-		return 0;
-	}
-
+	
 	async function update() {
 		// console.log("Update.")
 		
@@ -165,14 +67,9 @@
 			return;
 		}
 		({ gamePicks, weeks, currentWeek, leaguePlayers, league } = await resp.json());
+		displayableWeeks = getDisplayableWeeks(weeks)
 		lastUpdated = new Date(Date.now());
-		displayableWeeks = {};
-		for (const [weekNum, weekData] of Object.entries(weeks)) {
-			if (!selectable(weekData.games[0].date)) {
-				displayableWeeks[Number(weekNum)] = weekData;
-			}
-		}
-		playersWeeklyScores = scorePlayers();
+		playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
 	}
 
 	function anyActiveGames() {
@@ -227,7 +124,7 @@
 	onMount(() => {
 		isMounted = true
 		trySubscribe()
-		update
+		update()
 	})
 
 	$: {
