@@ -13,7 +13,7 @@ import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/schema';
 import { and, eq, gte, lte, getTableColumns, inArray } from 'drizzle-orm';
 import { getCurrentWeek } from '$lib/api';
-import { games, games } from '$lib/db/schemas/games/schema';
+import { games } from '$lib/db/schemas/games/schema';
 import { unflattenWeeks } from '$lib/helpers';
 import { leagues } from '$lib/db/schemas/leagues/schema';
 import { picks } from '$lib/db/schemas/picks/schema';
