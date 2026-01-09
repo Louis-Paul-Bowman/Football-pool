@@ -70,11 +70,11 @@ export const POST: RequestHandler = async ({ locals: { user }, request }) => {
 			.filter((element) => element.games.week === game.week)
 			.map((element) => element.games);
 		weekGames = chronologicalSort(weekGames);
-		let weekStart = weekGames[0].date;
+		let weekStart = weekGames.length > 0 ? weekGames[0].date : null;
 
 		let { selected, spread } = selections[game.id];
 
-		if (!selectable(weekStart)) {
+		if (weekStart === null || !selectable(weekStart)) {
 			return error(400, `Game ${game.id} can no longer be selected.`);
 		}
 

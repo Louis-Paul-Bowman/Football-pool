@@ -22,7 +22,7 @@ type PlayersWeeklyScores = Record<
 export function getDisplayableWeeks(weeks: PlayerLeagueData['weeks']) {
 	let displayableWeeks: typeof weeks = {};
 	for (const [weekNum, weekData] of Object.entries(weeks)) {
-		if (!selectable(weekData.games[0].date)) {
+		if (weekData.games.length > 0 && !selectable(weekData.games[0].date)) {
 			displayableWeeks[Number(weekNum)] = weekData;
 		}
 	}

@@ -140,7 +140,7 @@
 					on:click={async () => await update()}
 					class="btn w-16 text-center rounded-lg variant-filled-secondary">Update</button
 				>
-				{#if selectable(weeks[selectedWeek].games[0].date)}
+				{#if weeks[selectedWeek].games.length > 0 && selectable(weeks[selectedWeek].games[0].date)}
 					<button
 						on:click={async () => await handleSubmit()}
 						class="btn w-16 text-center rounded-lg variant-filled-secondary">Submit</button
@@ -157,7 +157,7 @@
 				bind:this={gameComponents[game.id]}
 				{game}
 				isSpread={spreadGames.includes(game.id)}
-				selectable={selectable(weeks[selectedWeek].games[0].date)}
+				selectable={weeks[selectedWeek].games.length > 0 && selectable(weeks[selectedWeek].games[0].date)}
 			></Game>
 		{/each}
 		{#if weeks[selectedWeek].byes.length > 0}
