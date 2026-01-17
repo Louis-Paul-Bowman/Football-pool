@@ -15,7 +15,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
-	const { isEmpty } = lodash;
+	const { isEmpty, max } = lodash;
 
 	export let data;
 
@@ -25,8 +25,9 @@
 	let lastUpdated = new Date(Date.now());
 	const updateTimeout = 1000 * 60;
 	let intervalId: NodeJS.Timeout | null = null;
-	let selectedWeek: number = currentWeek;
+	
 	let displayableWeeks = getDisplayableWeeks(weeks)
+	let selectedWeek: number = max(Object.keys(displayableWeeks).map((key) => Number(key))) ?? 1;
 	let playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
 	let hiddenPlayers: number[] = [];
 	const sortOptions = ['A-Z', 'Week', 'Total'] as const;
