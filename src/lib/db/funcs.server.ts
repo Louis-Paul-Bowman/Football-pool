@@ -6,12 +6,13 @@ import { byes } from '$lib/db/schemas/byes/schema';
 import { picks } from '$lib/db/schemas/picks/schema';
 import { players } from '$lib/db/schemas/players/schema';
 import { leagues } from '$lib/db/schemas/leagues/schema';
+import { bonuses } from './schemas/bonuses/schema';
 import { chronologicalSort, unflattenWeeks, selectable } from '$lib/helpers';
 import { EspnEventtoGame, getCurrentWeek } from '$lib/api';
 import type { PlayerLeagueData, GamePicks } from '$lib/api';
 import { and, inArray, eq, sql, SQL, gte, lte, getTableColumns } from 'drizzle-orm';
 import type { User } from '@supabase/supabase-js';
-
+import type { PlayersWeeklyBonuses } from '$lib/scoring';
 export interface GameUpdate {
 	id: typeof games.$inferInsert.id;
 	updated: typeof games.$inferInsert.updated;
@@ -354,4 +355,18 @@ export async function getUniqueLeague() {
 		throw new Error('More than 1 active league.');
 	}
 	return activeLeagues[0];
+}
+
+export async function getBonuses(league: typeof leagues.$inferSelect) {
+	let data = await db.select().from(bonuses).where(eq(bonuses.league, league.id));
+	let playersWeeklyBonuses: PlayersWeeklyBonuses = Object.fromEntries(
+		Object.keys(league.weeks).map((weekNum) => [weekNum, {}])
+	);
+
+	data.forEach((row) => {
+		playersWeeklyBonuses[row.week][row.playerId] ??= 0;
+		playersWeeklyBonuses[row.week][row.playerId] += row.quantity;
+	});
+
+	return playersWeeklyBonuses;
 }

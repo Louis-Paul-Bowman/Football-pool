@@ -21,18 +21,19 @@
 
 	const toastStore = getToastStore();
 
-	let { gamePicks, weeks, currentWeek, leaguePlayers, league, baseUrl, proto } = data;
+	let { gamePicks, weeks, currentWeek, leaguePlayers, playersWeeklyBonuses, league, baseUrl, proto } = data;
 	let lastUpdated = new Date(Date.now());
 	const updateTimeout = 1000 * 60;
 	let intervalId: NodeJS.Timeout | null = null;
 	
 	let displayableWeeks = getDisplayableWeeks(weeks)
 	let selectedWeek: number = max(Object.keys(displayableWeeks).map((key) => Number(key))) ?? 1;
-	let playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
+	let playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, playersWeeklyBonuses, league);
 	let hiddenPlayers: number[] = [];
 	const sortOptions = ['A-Z', 'Week', 'Total'] as const;
 	let sort: (typeof sortOptions)[number] = 'A-Z';
 	let ascending: boolean = true;
+	let showBonuses:boolean = true;
 	
 	// Really weird bug where subscribing to the updates 
 	// in a reactive statement would run server-side even
@@ -70,7 +71,7 @@
 		({ gamePicks, weeks, currentWeek, leaguePlayers, league } = await resp.json());
 		displayableWeeks = getDisplayableWeeks(weeks)
 		lastUpdated = new Date(Date.now());
-		playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
+		playersWeeklyScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, playersWeeklyBonuses, league);
 	}
 
 	function anyActiveGames() {
@@ -127,6 +128,10 @@
 		trySubscribe()
 		update()
 	})
+
+	$: {
+		showBonuses =  Object.keys(playersWeeklyBonuses[selectedWeek] ?? {}).length > 0;
+	}
 
 	$: {
 		if (sort === 'A-Z') {
@@ -233,6 +238,9 @@
 						</th>
 					{/each}
 					<th class="text-center">Week</th>
+					{#if showBonuses}
+						<th class="text-center">Bonus</th>
+					{/if}
 					<th class="text-center">Total</th>
 				</tr>
 			</thead>
@@ -359,6 +367,9 @@
 								</td>
 							{/each}
 							<td>{playersWeeklyScores[player.id][selectedWeek].week}</td>
+							{#if showBonuses}
+								<td>{playersWeeklyScores[player.id][selectedWeek].bonus}</td>
+							{/if}
 							<td>{playersWeeklyScores[player.id][selectedWeek].cumulative}</td>
 						</tr>
 					{/if}

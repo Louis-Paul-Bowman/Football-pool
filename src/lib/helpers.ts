@@ -57,7 +57,7 @@ export function selectable(weekStart: string | Date): boolean {
 }
 
 // export function selectable(weekStart: string | Date): boolean {
-// 	return true;
+// 	return false;
 // }
 
 export function unflattenWeeks<T extends { week: number }>(flat: T[]): Record<number, T[]> {

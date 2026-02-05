@@ -7,7 +7,8 @@ import {
 	getUniqueLeague,
 	getUpdates,
 	updateMultipleGames,
-	getGamePicks
+	getGamePicks,
+	getBonuses
 } from '$lib/db/funcs.server';
 import { db } from '$lib/db/db.server';
 import { players } from '$lib/db/schemas/players/schema';
@@ -31,6 +32,7 @@ import {
 } from '$lib/admin.server';
 import { getDisplayableWeeks, scorePlayers } from '$lib/scoring';
 import type { User } from '@supabase/supabase-js';
+import { bonuses } from '$lib/db/schemas/bonuses/schema';
 
 async function scores(user: User) {
 	let league = await getUniqueLeague();
@@ -47,7 +49,14 @@ async function scores(user: User) {
 	let weeks = playerLeagueData.weeks;
 	let gamePicks = await getGamePicks(league, weeks);
 	let displayableWeeks = getDisplayableWeeks(weeks);
-	let playerScores = scorePlayers(leaguePlayers, displayableWeeks, gamePicks, league);
+	let playerWeeklyBonuses = await getBonuses(league);
+	let playerScores = scorePlayers(
+		leaguePlayers,
+		displayableWeeks,
+		gamePicks,
+		playerWeeklyBonuses,
+		league
+	);
 	let namedPlayerScores: any = {};
 	for (const [key, value] of Object.entries(playerScores)) {
 		namedPlayerScores[playerNames[Number(key)]] = value;
@@ -66,23 +75,13 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	// return json(emails);
 
 	// let p: { p: keyof typeof team2id; s?: number }[] = [
-
-	// 	{ p: 'Broncos'},
-	// 	{ p: 'Steelers' },
-	// 	{ p: 'Buccaneers', s: 7 },
-	// 	{ p: 'Saints' },
-	// 	{ p: 'Jaguars' },
-	// 	{ p: 'Patriots' },
-	// 	{ p: 'Bengals' },
-	// 	{ p: 'Seahawks', s: 10 },
-	// 	{ p: 'Raiders', s: 7 },
-	// 	{ p: 'Bills' },
-	// 	{ p: '49ers' },
-	// 	{ p: 'Rams' }
+	// 	{ p: 'Seahawks', s: 4 },
+	// 	{ p: 'Patriots', s: 3 },
+	// 	{ p: 'Rams', s: 7 }
 	// ];
-	// let playerId = 85;
-	// let league = (await db.select().from(leagues).where(eq(leagues.id, 4)))[0];
-	// let week = 17;
+	// let playerId = 99;
+	// let league = (await db.select().from(leagues).where(eq(leagues.id, 5)))[0];
+	// let week = 2;
 
 	// let data = await makePicks(p, playerId, league, week);
 	// await db.insert(picks).values(data);
@@ -104,10 +103,10 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	// registered = orderBy(registered, ['name'], ['asc']);
 	// let names = registered.map((u) => u.name);
 
-	// let league = await getUniqueLeague();
-	// let currentWeek = 18;
-	// console.log(currentWeek);
-	// let missing = await missingPicks(league, currentWeek);
+	let league = await getUniqueLeague();
+	let currentWeek = 5;
+	console.log(currentWeek);
+	let missing = await missingPicks(league, currentWeek);
 	// let unpaid = await missingPayment(league);
 
 	// let allPlayers = await db.select().from(players).where(eq(players.league, league.id));
@@ -123,7 +122,7 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 
 	// let emails = await getAllEmails(league);
 
-	// let state = missing;
+	let state = missing;
 
 	// await updateDisplayName('911c76e0-5608-47cd-b5d5-20f238a8ed6f', 'MelE In The Middle');
 
@@ -134,17 +133,28 @@ export const GET: RequestHandler = async ({ locals: { user } }) => {
 	// let affected = await updateMultipleGames(updates.flat());
 	// return json(affected);
 
-	let league = (await db.select().from(leagues).where(eq(leagues.id, 5)))[0];
-	let gamesData = await db
-		.select()
-		.from(games)
-		.where(and(gte(games.date, league.start), lte(games.date, league.end)));
+	// let league = (await db.select().from(leagues).where(eq(leagues.id, 5)))[0];
+	// let gamesData = await db
+	// 	.select()
+	// 	.from(games)
+	// 	.where(and(gte(games.date, league.start), lte(games.date, league.end)));
 
-	let gameIds = gamesData.map((game) => game.id);
-	return json(gameIds);
+	// let gameIds = gamesData.map((game) => game.id);
+	// return json(gameIds);
 
 	// return json(await scores(user));
 
-	// return json(state);
+	return json(state);
 	// return json(data);
+	// let ids = [105, 111, 114, 103, 110, 96, 97, 106, 102, 108, 100];
+	// let values = ids.map((id): typeof bonuses.$inferInsert => ({
+	// 	league: 5,
+	// 	playerId: id,
+	// 	quantity: 3,
+	// 	week: 5,
+	// 	type: 'Super Bowl prediction'
+	// }));
+
+	// let affected = await db.insert(bonuses).values(values).returning();
+	// return json(affected);
 };

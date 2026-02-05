@@ -14,10 +14,15 @@ function getGameResult(game: PlayerLeagueData['weeks'][number]['games'][number])
 	return { winner, spread };
 }
 
-type PlayersWeeklyScores = Record<
+export type PlayersWeeklyScores = Record<
 	string,
-	Record<number, { gamesScores: Record<string, number>; week: number; cumulative: number }>
+	Record<
+		number,
+		{ gamesScores: Record<string, number>; bonus: number; week: number; cumulative: number }
+	>
 >;
+
+export type PlayersWeeklyBonuses = Record<number, Record<number, number>>;
 
 export function getDisplayableWeeks(weeks: PlayerLeagueData['weeks']) {
 	let displayableWeeks: typeof weeks = {};
@@ -33,12 +38,15 @@ export function scorePlayers(
 	leaguePlayers: Pick<typeof players.$inferSelect, 'id' | 'name'>[],
 	displayableWeeks: PlayerLeagueData['weeks'],
 	gamePicks: GamePicks,
+	bonuses: PlayersWeeklyBonuses,
 	league: PlayerLeagueData['league']
 ) {
 	let playersWeeklyScores: PlayersWeeklyScores = {};
 	leaguePlayers.forEach((player) => {
 		playersWeeklyScores[player.id] = {};
+
 		let cumulative = 0;
+
 		for (const [weekNum, weekData] of Object.entries(displayableWeeks)) {
 			let gamesScores: Record<string, number> = {};
 			let weekScore = 0;
@@ -48,9 +56,14 @@ export function scorePlayers(
 				weekScore += gameScore;
 				cumulative += gameScore;
 			});
+
+			let weekBonus = bonuses[Number(weekNum)]?.[player.id] ?? 0;
+			cumulative += weekBonus;
+
 			playersWeeklyScores[player.id][Number(weekNum)] = {
 				gamesScores,
 				week: weekScore,
+				bonus: weekBonus,
 				cumulative: cumulative
 			};
 		}

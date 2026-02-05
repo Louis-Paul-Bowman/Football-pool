@@ -50,6 +50,13 @@
       "when": 1736400790581,
       "tag": "0006_secret_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770322651932,
+      "tag": "0007_nice_bullseye",
+      "breakpoints": true
     }
   ]
 }
