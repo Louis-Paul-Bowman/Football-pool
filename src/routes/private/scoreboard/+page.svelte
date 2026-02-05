@@ -160,7 +160,15 @@
 	.no-padding {
 	  padding: 2px; 
 	}
-  </style>
+
+	.logo {
+	width: 2rem;
+	height: 2rem;
+	min-width: 2rem;
+	min-height: 2rem;
+	flex-shrink: 0;
+}
+</style>
 
 {#if !isEmpty(displayableWeeks)}
 	<div>
@@ -185,7 +193,7 @@
 	</div>
 
 	<div class="table-container overflow-x-auto">
-		<table class="table table-hover text-center min-w-full">
+		<table class="table table-hover text-center min-w-full table-fixed">
 			<thead>
 				<tr>
 					<th>
@@ -273,7 +281,7 @@
 											<img
 												src="/img/logos/svg/{game.home}.svg"
 												alt="{teams[game.home]} logo"
-												class="w-10 h-10"
+												class="logo"
 											/>
 										</div>
 										{#if game.active}
@@ -291,7 +299,7 @@
 											<img
 												src="/img/logos/svg/{game.away}.svg"
 												alt="{teams[game.away]} logo"
-												class="w-10 h-10"
+												class="logo"
 											/>
 										</div>
 										{#if game.active}
